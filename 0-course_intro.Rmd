@@ -1,0 +1,96 @@
+---
+output: html_document
+---
+
+```{r syllabus-setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Basics Course Info
+
+- Course title: ANLT 510: Advanced Statistics and Modeling
+- Meeting times: Fri 15 Oct, Sat 16 Oct  & Fri 12 Nov | 8:30 am – 5:00 pm
+- Instructor: Jason Freels, PhD <smaller><span class="explain">`r fontawesome::fa("external-link-alt")`</span><span class="tooltip">Contact Info<br/>Email: jasonkfreels@gmail.com<br/>Phone: 937.430.6619 (cell)</span></smaller>
+- Office hours: Mon/Thurs 4:00p – 5:00p <smaller><span class="explain">`r fontawesome::fa("external-link-alt")`</span><span class="tooltip">Note: These are designated office hours in which I guarantee that I can be available.  Feel free contact me at any time outside these hours - and I will get back to you as soon as I can.</span></smaller>
+
+
+## Course Overview
+
+- In the interdisciplinary field of analytics, a good understanding of statistical theory is important for drawing insights from data.  Many modern analytics problems involve the application of advanced statistical methods and cannot be performed without the use of software.  Therefore, this course presents the theory behind various statistical methods in combination with the programming skills required to implement them on data.  Topics to be discussed include:
+
+    + Methods of collecting and accessing data
+    + Techniques for manipulating, summarizing, and visualizing data
+    + Selecting appropriate methods to analyze data – to detect trends, to check for effects, to make predictions and decisions
+    + Constructing statistical models to estimate and predict real-world phenomena
+    + Communicating results in a reproducible manner
+
+## Course Pre-requisites & Co-requisites
+
+- There are no formal pre-requisites, but a basic working knowledge of the fundamental concepts and methods of statistics is presumed.  However, because each student brings a different level of statistics expertise to this course, I’ll infuse the course with overview and review of the most important intro stat concepts and methods that are most relevant to statistical modeling and data-based analytics.
+
+- There are no formal course co-requisites, but the content presented in this course will overlap in spirit and content with several other courses in the program: Data Mining; Descriptive, Predictive and Prescriptive Analytics; Data Visualization; and Data Management.
+
+## Course learning objectives
+
+- Reinforce fundamental introductory statistical concepts and methods:
+
+    + Connection between data collection and scope of conclusions
+    + Common visual and numerical summaries, and what to look for in such summaries
+    + Sampling distributions
+    + Confidence intervals and significance tests
+    + Limitations and abuses of formal inference
+    + Understand the statistical modeling process:
+    + Choosing appropriate models
+    + Fitting models with technology
+    + Assessing model fit
+    + Checking conditions for reliable use of models
+    + Using and applying models in context
+
+## Course Format, Resources & Software
+
+- The text for this course is Introduction to Statistical Learning (with applications in R by Gareth James, Daniela Witten, Trevor Hastie and Robert Tibshirani.  E-textbook and hard-copies of the text can be purchased from Amazon, however the authors have made a PDF version of the text available.  I've provided a copy of this PDF version here for you to download.  In addition, the authors have provided slides, videos  and an R package to accompany the text. You'll note that to complete the course, I've tasked you with specific reading chapters from the text each week.  If you would like to use the slides and videos, that's fine but they should be used as an additional resource to complement reading the text - not a substitute for it.  
+
+- Additionally, the following resources may be helpful:
+
+    + AFIT Data Science Lab R Programming Guide, https://afit-r.github.io/
+    + Hadley Wickham, Advanced R, 2014, http://adv-r.had.co.nz/
+    + R Markdown: The Definitive Guide https://bookdown.org/yihui/rmarkdown/
+    + During the in-class sessions (10/15 & 10/16) I'll use the slides to cover chapters 1-4 of the ISLR textbook to get you set to complete Assignment #1.  These sessions will be comprised primarily of lectures, mixed with R coding demonstrations.
+
+- Throughout the course we will use the R Project for Statistical Computing and the RStudio Integrated Development Environment.  A number of R Packages will be used throughout the course, students will be able to download and install them on the fly. 
+
+## Course schedule (tentative)
+
+- Friday 15 October (a.m.)
+
+    + Overview of Introductory Statistics 
+    + Intro to optimization methods/loss functions
+    + ISLR Chapter 1
+
+- Friday 15 October (p.m.)
+
+    + ISLR Chapter 1 (Finish)
+    + ISLR Chapter 2
+
+- Saturday 16 October (a.m.)
+
+    + ISLR Chapter 2
+    + ISLR Chapter 3
+
+- Saturday 16 October (p.m.)
+
+    + ISLR Chapter 3
+    + ISLR Chapter 4
+
+## Assessment
+
+- Students will be assessed based on their completion of assigned homework problems included at the end of each chapter in the text.  Each week students are assigned to read certain chapters from the ISLR textbook and then complete specific exercises from the back of each chapter.  Homework assignments are posted to course Moodle page along with due dates and times (assignments are due each Sunday by 11:59pm). 
+- I encourage students to work together to complete the assignments, however each student must submit their own solution.  Moreover, students may use external resources to complete the assignments, but they must be cited. 
+
+## Late Assignments
+
+- Assignments turned in after the assigned date/time but will be considered late. Five (5) points will be deducted from the final assignment grade for each day the assignment is turned in after the assigned due date. I realize that outside events could make it exceedingly difficult for students to turn an assignment in on time.  In these circumstances, students should coordinate with the instructor PRIOR TO THE ASSIGNMENT DUE DATE to set up an alternate due date.  If an unforeseen outside event occurs, such that a student could not prior arrangements - it is the instructor's discretion as to whether or not the assignment will be considered late. 
+
+## Reproducible Solutions
+
+- As future data scientists and analysts you should strive to ensure that your results can be reproduced.  To emphasize this, I require that all student assignment solutions be reproducible.  In this course students accomplish this by submitting their solutions as Rmarkdown files (.Rmd file type).  Students must ensure that their file can compile as a HTML document, both on their own computer as well as on the instructor's computer.  If a students assignment solution must be modified to compile on the instructor's computer 10 points will be deducted from the final assignment grade.  To help student's get started with the formatting an Rmarkdown document, an assignment template has been provided.
