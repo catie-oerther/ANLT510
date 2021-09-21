@@ -1,0 +1,33 @@
+---
+title: "test"
+author: "Jason Freels"
+date: "9/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+## Generalized linear models
+
+- Linear regression is a member of a larger model family known as generalized linear models
+
+|Model                  | Random      | Link              | Systematic
+|:----------------------|:------------|:------------------|:------------
+|Linear Regression      | Normal      | Identity          | Continuous
+|ANOVA                  | Normal      | Identity          | Categorical
+|ANCOVA                 | Normal      | Identity          | Mixed
+|Logistic Regression    | Binomial    | Logit             | Mixed
+|Loglinear Regression   | Poisson     | Log               | Categorical
+|Poisson Regression     | Poisson     | Log               | Mixed
+|Multinomial Regression | Multinomial | Generalized Logit | Mixed
+
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
