@@ -1,0 +1,31 @@
+---
+output: html_document
+---
+
+```{r load-libs, echo=FALSE, warning=FALSE}
+library(knitr)
+
+library(rprojroot)
+
+find_resource <- function(.dir, .file, .root = find_root(is_git_root)){
+  
+  return(file.path(.root, "resources",.dir, .file))
+  
+}
+```
+
+
+```{r master-setup, include=!FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      comment = NA, 
+                      fig.height = 10,
+                      fig.width = 10,
+                      fig.align = "center", 
+                      message = F, 
+                      warning = F)
+
+shiny::includeCSS(find_resource("css","flatly-style.css"))
+shiny::includeCSS(find_resource("css","witt-title.css"))
+shiny::includeScript(find_resource("js","jquery.min.js"))
+shiny::includeScript(find_resource("js","jkf-scroll.js"))
+```
