@@ -1,0 +1,426 @@
+---
+output: html_document
+---
+
+```{r ml-algos-setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# The process of building machine Learning Models
+
+## Overview
+
+<blockquote>All models are wrong - some are useful</blockquote>
+
+- In this section we walk through the steps that are required to build  will
+
+## Supervised Vs Unsupervised Learning Algorithms
+
+- You be familiar or have experience in one or more of the following domain areas 
+
+    + Statistical modeling
+    + Predictive analytics
+    + Data mining
+    + Artificial intelligence
+
+- With few exceptions, when these terms are used to discuss a learning algorithm, what's really meant is the field of <b>machine learning</b><smaller><span class="explain">`r fontawesome::fa("external-link-alt")`</span><span class="tooltip">To be pedantic, machine learning is a sub-field of artificial intelligence (AI) - in practice, however, most references to "AI" really imply machine learning</span></smaller>
+
+- Despite being a broad field, most machine learning algorithms can be subdivided in into three main classes
+
+    + Supervised learning algorithms
+    + Unsupervised learning algorithms
+    + Reinforcement learning
+
+```{r, echo=FALSE, fig.cap="Classes of Machine learning algorithms with applications (reference: https://medium.com/@sanchittanwar75/introduction-to-machine-learning-and-deep-learning-bd25b792e488)" }
+knitr::include_graphics(find_resource("images","ml_subs.png"))
+```
+
+- Supervised learning algorithms
+
+    + Pertain to data sets that contain both outputs (responses) **AND** inputs (features/factors/predictors) 
+    + Describe the relationship between the input(s) and the output(s) 
+    + Can be used predict new output(s) given new inputs(s)
+    + ***Basic idea***: supervised algorithms "learn" the functional relationship between a set of inputs and the associated output(s)
+
+- Unsupervised learning algorithms
+
+    + Pertain to data that includes **ONLY** inputs (features) 
+    + Partition (cluster) the data in a meaningful way
+    + ***Basic idea***: We DO NOT HAVE outputs 
+    + Examples of when an unsupervised learning algorithm would be used
+
+        - Cluster (or partition) customers according to their buying habits for the purpose of targeted advertising
+        - Detect anomalous transactions or faulty pieces of hardware
+        - Use association mining to identify items that frequently occur together (i.e. basket analysis) 
+
+# Supervised learning algorithms can be divided into two main classes
+
+## Regression algorithms: when the output/response variable is numeric and continuous
+
+- Example applications of regression algorithms 
+
+    + Housing or stock prices
+    + Weather analysis
+    + Time series forecasting
+
+- The following algorithms can be used to model (describe) the relationship between inputs and outputs when the outputs are numeric and continuous
+
+    + Linear regression
+    + Polynomial regression
+    + Ridge regression
+    + Lasso regression
+    + ElasticNets
+    + Decision trees
+    + Random forests
+    + Gradient boosting methods
+    + Neural networks
+
+## Classification algorithms: when the output/response variable is discrete or categorical
+
+- Classification is focused on predicting/labeling a discrete output (categories)
+
+- There can be more that two (yes/no) categories
+
+- Example applications of classification algorithms
+
+    + Estimating a customer's satisfaction with a product they haven't tried before
+    + Predicting next month's sales
+    + Predicting the outcome of a sporting event
+    + Labeling whether a photo contains a cucumber or a zucchini
+
+- The following algorithms can be used to model (describe) the relationship between inputs and outputs when the outputs are discrete or categorical
+
+    + Logistic Regression
+    + Multinomial Regression
+    + Ordinal Regression
+    + Logit Regression
+    + Probit Regression
+    + Nearest Neighbors
+    + Decision Trees
+    + Random Forest
+    + Gradient Boosting
+    + Neural Networks
+
+# Model Complexity vs. Model Accuracy
+
+## The big picture of supervised learning algorithms
+
+- Before moving forward I want to make sure that you have a solid (yet high level) understanding of how supervised learning algorithms work under the hood
+
+    + For any example problem you can think of there exists a "perfect" function $f_{\text{perfect}}$ that perfectly describes the relationship between the inputs and the outputs
+    + If we could use $f_{\text{perfect}}$ all of our predictions would be "perfect" (i.e. there would be no errors)
+    + We will <focus>almost never</focus> be able to find $f_{\text{perfect}}$ because in the real world the relationship is too complex `r emo::ji("cry")` (sorry)
+    + Statistical learning algorithms use the inputs and outputs to "learn" the best representation of $f_{\text{perfect}}$
+    + This learned function will not be perfect, therefore let's call it  $f_{\text{imperfect}}$
+    + It should be obvious that if more data is available $f_{\text{imperfect}}$ will do a better job representing $f_{\text{perfect}}$
+    + What may not be obvious is that all algorithms are not equal -- some will do better than others regardless of how much data is available
+
+## Common elements of supervised learning algorithms 
+
+- All supervised learning algorithms have the following elements
+
+    + A data set that includes one or more inputs (features) and one or more outputs (responses)
+    + An assumed form of the model $f_{\text{imperfect}}$ that will represent $f_{\text{perfect}}$
+    + A set of parameters that can be used to tweak the shape of $f_{\text{imperfect}}$ (think of these a knob settings)
+    + A loss function that "learns" which parameter values result in the form of $f_{\text{imperfect}}$ that best represents $f_{\text{perfect}}$
+
+# Supervised learning Example
+
+## Elements of supervised learning algorithms: #1 Data
+
+- Suppose you're asked to create a model to describe the relationship between one set of inputs and one set of outputs 
+
+    + We'll call the set of inputs `x` and the set of outputs `y`
+    + Plotting the inputs and outputs shows the relationship between `x` and `y` in the figure below
+    + Looking at the plot we see that this is an "ideal" data set 
+
+```{r simpledata, fig.cap="Plot of some ideal data", echo=FALSE}
+library(ggplot2)
+# Create a data.frame object
+df <- data.frame(x = seq(0, 6, by = 0.5))
+
+# Add a "column" y to the data.frame df
+df$y <- 5 * df$x + 3
+
+# plot() opens a new "base" R graphics device
+ggplot(df, aes(x,y)) +
+  geom_point(colour = "blue", size = 2.5) +
+  theme_bw(base_size = 16)
+```
+
+## Elements of supervised learning algorithms: #2 an assumed form of $f_{\text{imperfect}}$
+
+- Observing the figure, there doesn't appear to be any uncertainty in the data as each point falls on a straight line
+
+- An obvious choice for a model to describe this data would be a function of the form $y = mx +b$ - the familiar equation for a line
+
+- Adding a plot of the line $y(x) = mx+b$ shows that a "perfect" model exists for our ideal data
+
+```{r perfect, fig.cap='Fitting the ideal data with a "perfect" model', echo=FALSE}
+# ggplot() opens a new ggplot2 graphics device
+ggplot(df, aes(x,y)) +
+  geom_line(colour = "red", size = 1.25) +
+  geom_point(colour = "blue", size = 2.5) +
+  theme_bw(base_size = 16)+
+  ylab(expression(y(x) == m%*%x + b))
+```
+
+## Elements of supervised learning algorithms: #3 parameter values
+
+- Now that we've chosen a functional form for $f_{\text{imperfect}}$ we turn our attention to the parameters of the model
+
+    + Every model comes with parameters -- the values assigned to these parameters affect how well $f_{\text{imperfect}}$ represent the relationship between `x` and `y`
+
+    + For our chosen $f_{\text{imperfect}}$ we see that there are two paramters the slope ($m$) and the intercept ($b$)
+    
+    + The question, of course is what are the correct values of the slope $m$ and the intercept $b$ that best represent the relationship between `x` and `y`
+
+    + For this ideal data set, we can determine these values using our knowledge of straight lines and our ability to read or we could read the value of the intercept directly from the plot as $b = 3$ 
+
+    + Using this value for $b$ we can choose any of the data points and solve for the slope $m = 5$ 
+
+- I know what you're thinking: What does this have to do with machine learning? 
+
+    + So far, nothing - but let's fix that
+    + Let's have the machine determine the parameter values that result in the best representation of the relationship between `x` and `y` constraining this relationship the form of $f_{\text{imperfect}}$ that we chose above
+    + Finding the best requires the use of optimization methods
+    + But before we can do any optimization we first need to answer the question <font color="red"><b>what exactly are we optimizing?</b></font> - the answer is a <u>loss function (aka cost function)</u>. 
+
+## Elements of supervised learning algorithms: #4 loss functions
+
+- A <focus>loss function</focus> helps the machine differentiate between good parameter values and bad parameter values
+
+- Loss functions are a key component in all supervised learning algorithms
+
+- In many cases, you don't have to choose a loss function you use to find the optimal parameter values 
+ 
+    + Rather, it comes as part of a package deal with the modeling approach you choose (i.e. linear regression, logistic regression, etc.).
+
+    + You can, however, come up with your own loss function - so long as it produces meaningful results
+
+# Supervised Learning Example (Cont.)
+
+## Visualizing loss functions
+
+- For our perfect example data, we can choose among several different loss functions
+
+- However, not all of them will return an accurate solution
+
+- In the sections below I walk through the choice of several different loss functions and plot the results
+
+    + A <u>naive</u> loss function as the difference between the observed output and the output returned by the proposed model
+    + A good loss function
+    + A better loss function
+
+## A Naive loss function
+
+- In this case we use a <u>naive</u> loss function that represents the difference between the observed output and the output returned by the proposed model
+
+- The loss function is expressed as shown below
+
+$$
+Loss_{_{naive}}(\mathbf{y},\mathbf{x},m,b) = \sum_{i=1}^N y_i-m\times x_i-b.
+$$
+
+- Using this function, loss would simply be defined as the sum of the vertical distances between each observed output $y_i, i = 1,...,n$ and the output returned by the chosen model
+
+- The parameters $m$ and $b$ for the best-fit line correspond to model that has the minimum loss. 
+
+- For our "ideal" data, the points fall on a straight line and we would expect the loss value in this case to be zero
+
+- Thus far, we've chosen a functional form that we believe is a good representation of the data -- and a corresponding loss function
+
+- In the chunk below we define our naive loss function 
+
+```{r naive_loss}
+loss_naive <- function(params,x,y) {
+
+  if(length(params) != 2) stop("Params should be a length 2 vector")
+  
+  m <- params[1]
+  b <- params[2]
+  
+  return(sum(y - m * x - b))
+
+}
+```
+
+- Now, let's use the `stats::optim()` function to find the values of $m$ and $b$ that minimize the loss function and result in a model that best-fits the data  
+
+```{r}
+optim(par = c(1,1),
+      fn = loss_naive,
+      x = df$x,
+      y = df$y,
+      control = list(fnscale = 1))
+```
+
+- Looking at these results, it's clear that something isn't right - why?
+
+    + The problem is we created a loss function that isn't minimized at $0$. 
+    + We can visualize this loss function by generating a matrix of values for various combinations of $m$ and $b$ and plotting these values where $x = m$, $y = b$, and $z = \text{Loss}$ this plot is shown below.
+
+```{r, out.width='100%', echo=FALSE}
+library(plotly)
+slope <- seq(0, 10, 0.1)
+intercept <- seq(0, 10, 0.1)
+loss_n <- matrix(NA, nrow = length(slope), ncol = length(intercept))
+
+for(i in 1:length(slope)) {
+  
+    for(j in 1:length(intercept)) {
+    
+        loss_n[i,j] <- sum((df$y - slope[i] * df$x - intercept[j]))
+    
+    }
+  
+}
+
+# Generate a 3D surface plot using plotly
+p = plot_ly(z = loss_n,
+            x = slope, 
+            y = intercept, 
+            width = 1000, 
+            height = 1000) %>% 
+    add_surface(contours = list(z = list(show = TRUE,
+                                         usecolormap = TRUE,
+                                         highlightcolor = "#ff0000",
+                                         project = list(z = TRUE))))
+```
+
+<center><br>`r p`<br></center>
+
+## A good loss function
+
+- Another possible loss function would involve taking the absolute value of the errors -- we know this function is minimized at zero
+
+$$
+Loss_{_{absolute}}(\mathbf{y},\mathbf{x},m,b) = \sum_{i=1}^N \Big\vert y_i-m\times x_i-b\Big\vert.
+$$
+
+- Once again let's define our <u>OK</u> loss function 
+
+```{r absolute_loss}
+# First define a function to optimize
+loss_absolute <- function(params,x,y) {
+
+   if(length(params) != 2) stop("Params should be a length 2 vector")
+  
+   m <- params[1]
+   b <- params[2]
+   
+   return(sum(abs(y - m * x - b)))
+
+}
+```
+
+- Now, let's use the `stats::optim()` function to find the values of $m$ and $b$ that minimize the loss function and result in a model that best-fits the data  
+
+```{r}
+optim(par = c(1,1),           # provide starting values for m and b
+      fn = loss_absolute,     # define function to optimize
+      x = df$x,               # provide values for known parameters
+      y = df$y,               # provide values for known parameters
+      control = list(fnscale = 1))
+```
+
+- Let's visualize this loss function -- like we did before
+
+```{r, out.width='100%', echo=FALSE}
+slope <- seq(0, 10, 0.1)
+intercept <- seq(0, 10, 0.1)
+
+loss_a <- matrix(NA, nrow = length(slope), ncol = length(intercept))
+
+for(i in 1:length(slope)) {
+  
+    for(j in 1:length(intercept)) {
+    
+        loss_a[i,j] <- sum(abs(df$y - slope[i] * df$x - intercept[j]))
+    
+    }
+  
+}
+
+# Generate a 3D surface plot using plotly
+p = plot_ly(z = loss_a,
+            x = slope, 
+            y = intercept, 
+            width = 1000, 
+            height = 1000) %>% 
+    add_surface(contours = list(z = list(show = TRUE,
+                                         usecolormap = TRUE,
+                                         highlightcolor = "#ff0000",
+                                         project = list(z = TRUE))))
+```
+
+<center><br>`r p`<br></center>
+
+## A better loss function
+
+- The problem is that linear functions are unconstrained
+
+- A better option would be to propose a loss functions that is convex, such as 
+
+$$
+Loss_{_{convex}}(\mathbf{y},\mathbf{x},m,b) = \sum_{i=1}^N \Big( y_i-m\times x_i-b\Big)^2.
+$$
+
+- Note that we are minimizing the squared distances between the observed values and the proposed model - hence this is called <focus>least squares optimization</focus>
+
+- For the last time let's define our <u>convex</u> loss function 
+
+```{r convex_loss}
+loss_convex <- function(params,x,y) {
+
+  if(length(params) != 2) stop("Params should be a length 2 vector")
+  
+  m <- params[1]
+  b <- params[2]
+  
+  return(sum((y - m * x - b) ^ 2))    
+
+}
+```
+
+- Now, let's use the `stats::optim()` function to find the values of $m$ and $b$ that minimize the loss function and result in a model that best-fits the data  
+
+```{r}
+optim(par = c(1,1),        # provide starting values for m and b
+      fn = loss_convex,    # define function to optimize
+      x = df$x,            # provide values for known parameters
+      y = df$y,            # provide values for known parameters
+      control = list(fnscale = 1))
+```
+
+- Let's visualize this loss function -- like we did for the last two 
+
+```{r, out.width='100%', fig.height=9, echo=FALSE, fig.align='center'}
+slope <- seq(0, 10, 0.1)
+intercept <- seq(0, 10, 0.1)
+
+loss2 <- matrix(NA, nrow = length(slope), ncol = length(intercept))
+
+for(i in 1:length(slope)) {
+  
+    for(j in 1:length(intercept)) {
+    
+        loss2[i,j] <- sum((df$y - slope[i] * df$x - intercept[j])^2)
+    
+    }
+  
+}
+
+p = plot_ly(z = loss2, 
+            x = slope, 
+            y = intercept, 
+            width = 1000, 
+            height = 1000) %>% 
+    add_surface(contours = list(z = list(show = TRUE,
+                                         usecolormap = TRUE,
+                                         highlightcolor = "#ff0000",
+                                         project = list(z = TRUE))))
+```
+
+<center><br>`r p`<br></center>
+
