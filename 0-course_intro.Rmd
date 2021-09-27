@@ -1,7 +1,7 @@
 ---
 title: "Wittenberg University - Master of Science in Analytics"
 subtitle: "ANLT 510 - Advanced Statistics and Modeling"
-author: "Course Overview"
+author: "The landscape of machine Learning Models"
 date: "`r format(Sys.Date(), format = '%d %b %Y')`"
 output: 
   slidy_presentation:
@@ -14,202 +14,14 @@ params:
   day3_date: "Nov 12"
 ---
 
-# Course Overview
+# Overview
 
 ```{r child="resources/R/setup.Rmd"}
 ```
 
-
-## Basics Course Info
-
-- Course title: ANLT 510: Advanced Statistics and Modeling
-- Meeting times: Fri 15 Oct, Sat 16 Oct  & Fri 12 Nov | 8:30 am – 5:00 pm
-- Instructor: Jason Freels, PhD <smaller><span class="explain">`r fontawesome::fa("external-link-alt")`</span><span class="tooltip">Contact Info<br/>Email: jasonkfreels@gmail.com<br/>Phone: 937.430.6619 (cell)</span></smaller>
-- Office hours: Mon/Thurs 4:00p – 5:00p <smaller><span class="explain">`r fontawesome::fa("external-link-alt")`</span><span class="tooltip">Note: These are designated office hours in which I guarantee that I can be available.  Feel free contact me at any time outside these hours - and I will get back to you as soon as I can.</span></smaller>
-
-## Course Overview
-
-- In the interdisciplinary field of analytics, a good understanding of statistical theory is important for drawing insights from data  
-
-- Many modern analytics problems involve the application of advanced statistical methods and cannot be performed without the use of software
-
-- Therefore, this course presents the theory behind various statistical methods in combination with the programming skills required to implement them on data
-
-- Topics to be discussed include:
-
-    + Methods of collecting and accessing data
-    + Techniques for manipulating, summarizing, and visualizing data
-    + Selecting appropriate methods to analyze data – to detect trends, to check for effects, to make predictions and decisions
-    + Constructing statistical models to estimate and predict real-world phenomena
-    + Communicating results in a reproducible manner
-
-## Course Pre-requisites & Co-requisites
-
-- There are no formal pre-requisites, but a basic working knowledge of the fundamental concepts and methods of statistics is presumed
-
-- Because each student comes into the course with a background in statistics experience, I’ll review several important introductory stat concepts and methods that are relevant to statistical modeling and data-based analytics
-
-- There are no formal course co-requisites, but the content presented in this course will overlap in spirit and content with several other courses in the program: Data Mining; Descriptive, Predictive and Prescriptive Analytics; Data Visualization; and Data Management.
-
-## Course learning objectives
-
-- Reinforce fundamental introductory statistical concepts and methods:
-
-    + Connection between data collection and scope of conclusions
-    + Common visual and numerical summaries, and what to look for in such summaries
-    + Sampling distributions
-    + Confidence intervals and significance tests
-    + Limitations and abuses of formal inference
-    + Understand the statistical modeling process:
-    + Choosing appropriate models
-    + Fitting models with technology
-    + Assessing model fit
-    + Checking conditions for reliable use of models
-    + Using and applying models in context
-
-
-# Course Overview - Format
-
-## Resources & Software
-
-- The text for this course is Introduction to Statistical Learning (with applications in R by Gareth James, Daniela Witten, Trevor Hastie and Robert Tibshirani
-
-    + E-textbook and hard-copies of the text can be purchased from Amazon, however the authors have made a PDF version of the text available.  I've provided a copy of this PDF version here for you to download
-    + In addition, the authors have provided slides, videos and an R package to accompany the text
-
-- You'll note that to complete the course, I've tasked you with specific reading chapters from the text each week.  If you would like to use the slides and videos, that's fine but they should be used as an additional resource to complement reading the text - not a substitute for it.  
-
-- Lastly, the following resources may be helpful:
-
-    + AFIT Data Science Lab R Programming Guide, https://afit-r.github.io/
-    + Hadley Wickham, Advanced R, 2014, http://adv-r.had.co.nz/
-    + R Markdown: The Definitive Guide https://bookdown.org/yihui/rmarkdown/
-    + During the in-class sessions (10/15 & 10/16) I'll use the slides to cover chapters 1-4 of the ISLR textbook to get you set to complete Assignment #1.  These sessions will be comprised primarily of lectures, mixed with R coding demonstrations.
-
-- Throughout the course we will use the R Project for Statistical Computing and the RStudio Integrated Development Environment.  A number of R Packages will be used throughout the course, students will be able to download and install them on the fly. 
-
-## How to follow along with the course
-
-- During these first two days of in-person learning we'll cover the first 4 chapters in the ISLR text 
-
-- Along with the slides I'll provide code chunks so that you can run the code on your machine
-
-- We'll also walk through the first homework assignment
-
-- The goal will be to ensure that you're ready to complete the remaining three homework assignments 
-
-# Why R?
-
-## A language for data analysis and graphics
-
-- This definition of R was used by Ross Ihaka and Robert Gentleman in the title of their 1996 [paper](https://www.stat.auckland.ac.nz/~ihaka/downloads/R-paper.pdf) outlining their experience of designing and implementing the R software. 
-
-- It’s safe to say this remains the essence of what R is; however, it’s tough to encapsulate such a diverse programming language into a single phrase.
-
-- The R programming language has become one of the most widely used tools for statistics and data science
-
-- Its application runs the gamut from data pre-processing, cleaning, web scraping and visualization to a wide range of analytic tasks such as computational statistics, econometrics, optimization, and natural language processing
-
-- Is being used by many organizations such as Google, Facebook, New York Times, Twitter, Etsy, Department of Defense, and even in presidential political campaigns
-
-## So what makes R such a popular tool?
-
-- R is an *open source* software created over 20 years ago by Ihaka and Gentleman at the University of Auckland, New Zealand. 
-
-    + Its lineage goes back to the S programming language created by John Chambers out of Bell Labs back in the 1970s
-    + R is actually a combination of S with lexical scoping semantics inspired by Scheme
-    + The S language has been a popular vehicle for research in statistical methodology, and R provides an *open source* route to participate in that activity
-
-Although the history of S and R is interesting[^peng], the principal artifact to observe is that R is an *open source* software. Although some contest that open-source software is merely a "craze" [^ORMS], most evidence suggests that open-source is here to stay and represents a *new*[^newness] norm for programming languages. Open-source software such as R blurs the distinction between developer and user which provides the ability to extend and modify the analytic functionality to your, or your organization's needs. The data analysis process is rarely restricted to just a handful of tasks with predictable input and outputs that can be pre-defined by a fixed user interface as is common in proprietary software. Rather, as previously mentioned in the introduction, data analysis includes unique, different, and often multiple requirements regarding the specific tasks involved.  Open source software allows more flexibility for you, the data analyst, to manage how data are being transformed, manipulated, and modeled "under the hood" of software rather than relying on "stiff" point and click software interfaces. Open source also allows you to operate on every major platform rather than be restricted to what your personal budget allows or the idiosyncratic purchases of organizations.
-
-This invariably leads to new expectations for data analysts; however, organizations are proving to greatly value the increased technical abilities of open source data analysts as evidenced by a recent O'Reilly survey revealing that data analysts focusing on open source technologies make more money than those still dealing in proprietary technologies.
-
-## R is extremely flexible
-
-- Another benefit of open source is that anybody can access the source code, modify and improve it
-
-    + Many excellent programmers contribute to improving existing R code and developing new capabilities
-    + Researchers from all walks of life (academic institutions, industry, and focus groups such as [RStudio](https://www.rstudio.com) and [rOpenSci](https://ropensci.org/packages/)) are contributing to advancements of R's capabilities and best practices
-    + This has resulted in powerful tools that advance both statistical and non-statistical modeling capabilities that are taking data analysis to new levels
-
-Many researchers in academic institutions are using and developing R code to develop the latest techniques in statistics and machine learning. As part of their research, they often publish an R package to accompany their research articles[^r_journals]. This provides immediate access to the latest analytic techniques and implementations. And this research is not soley focused on generalized algorithms as many new capabilities are in the form of advancing analytic algorithms for tasks in specific domains. A quick assessment of the different [task domains](https://cran.r-project.org/web/views/) for which code is being developed illustrates the wide spectrum - econometrics, finance, chemometrics & computational physics, pharmacokinetics, social sciences, etc.
-
-Powerful tools are also being developed to perform many tasks that greatly aid the data analysis process. This is not limited to just new ways to wrangle your data but also new ways to visualize and communicate data. R packages are now making it easier than ever to create interactive graphics and websites and produce sophisticated html and pdf reports. R packages are also integrating communication with high-performance programming languages such as C, Fortran, and C++ making data analysis more powerful, efficient, and posthaste than ever. 
-
-So although the analytic montra *"use the right tool for the problem"* should always be in our prefrontal cortex, the advancements and flexibility of R is making it the right tool for many problems.
-
-## Community
-
-- The R community is fantastically diverse and engaged
-
-- On a daily basis, the R community generates opportunities and resources for learning about R.  These cover the full spectrum of training - [books](http://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords=r+programming), [online courses](https://www.coursera.org/specializations/jhu-data-science), [R user groups](http://blog.revolutionanalytics.com/local-r-groups.html), [workshops](https://www.rstudio.com/resources/training/workshops), [conferences](https://www.r-project.org/conferences.html), etc. And with over 2 million users and developers, finding help and technical expertise is only a simple click away. Support is available through [R mailing lists](https://www.r-project.org/mail.html), Q&A websites[^r_QA], [social media networks](www.twitter.com/search/rstats), and [numerous blogs](http://www.r-bloggers.com/). 
-
-- So now that you know how awesome R is, it's time to learn how to use it.
-
-# Course Overview - Homework
-
-## Assessment
-
-- Students will be assessed based on their completion of assigned homework problems included at the end of each chapter in the text.  Each week students are assigned to read certain chapters from the ISLR textbook and then complete specific exercises from the back of each chapter.  Homework assignments are posted to course Moodle page along with due dates and times (assignments are due each Sunday by 11:59pm). 
-- I encourage students to work together to complete the assignments, however each student must submit their own solution.  Moreover, students may use external resources to complete the assignments, but they must be cited. 
-
-## Late Assignments
-
-- Assignments turned in after the assigned date/time but will be considered late. Five (5) points will be deducted from the final assignment grade for each day the assignment is turned in after the assigned due date. I realize that outside events could make it exceedingly difficult for students to turn an assignment in on time.  
-
-- In these circumstances, students should coordinate with the instructor PRIOR TO THE ASSIGNMENT DUE DATE to set up an alternate due date.  If an unforeseen outside event occurs, such that a student could not prior arrangements - it is the instructor's discretion as to whether or not the assignment will be considered late. 
-
-## Reproducible Solutions
-
-- As future data scientists and analysts you should strive to ensure that your results can be reproduced by others.  
-
-- To emphasize this, I require that all student assignment solutions be reproducible
-
-- In this course students accomplish this by submitting their solutions as Rmarkdown files (.Rmd file type)
-
-- Students must ensure that their file can compile as a HTML document, both on their own computer as well as on the instructor's computer
-
-- If a students assignment solution must be modified to compile on the instructor's computer up to 10 points may be deducted from the final assignment grade
-
-- To help student's get started with the formatting an Rmarkdown document, assignment templates will be provided
-
-# Course Overview - Schedule
-
-## Course schedule (tentative)
-
-- Friday 15 October (a.m.) - ISLR Chapter 1
-
-    + Overview of Machine learning model
-    + Intro to optimization methods/loss functions
-    + Overview of Introductory Statistics 
-
-- Friday 15 October (p.m.) - ISLR Chapter 2
-
-    + ISLR Chapter 1 (Finish)
-
-- Saturday 16 October (a.m.) - ISLR Chapter 3
-
-    + Linear Regression
-
-- Saturday 16 October (p.m.)- ISLR Chapter 4
-
-    + Logistic Regression
-
-# Your Turn!
-
-## Please introduce yourself
-
-- What is your name?
-- Where do you currently work?
-- What do you hope to get from this program?
-- How would you describe your stats background?
-- What is your capstone project?
-
-# The landscape of machine Learning Models
-
 ## Supervised Vs Unsupervised Learning Algorithms
 
-- You be familiar or have experience in one or more of the following domain areas 
+- You may be familiar or have experience in one or more of the following domain areas 
 
     + Statistical modeling
     + Predictive analytics
@@ -615,6 +427,135 @@ p = plot_ly(z = loss2,
                                          project = list(z = TRUE))))
 ```
 
+# Noise
+
+```{r shiny_noise, echo=!FALSE, out.width='100%'}
+ui = fluidPage(
+      fluidRow(
+        column(width = 3,
+               shiny::br(),
+         sliderInput("sigma",
+                     HTML("<h3>Noise Value (&sigma;):</h3>"),
+                     min = 0.05,
+                     max = 5,
+                     value = 0.25,
+                     step = 0.05,
+                     animate = animationOptions(interval = 250, loop = F)),
+         shiny::br(),
+         shiny::hr(),
+         shiny::br(),
+         uiOutput("sumd"),
+         shiny::br(),
+         shiny::hr(),
+         shiny::br(),
+         uiOutput("sumda"),
+         shiny::br(),
+         shiny::hr(),
+         shiny::br(),
+         uiOutput("sumd2")),
+                column(width = 9,
+      mainPanel(width = "100%",
+         plotOutput("plot3d", height = "550px")))))
+
+
+server = function(input, output, session) {
+  
+  x_i <- reactive({seq(1, 6, by = 0.5)})
+  noise <- reactive({rnorm(length(x_i()), 0, input$sigma)})
+  y_i <- reactive({5 * x_i() + 3 + noise()})
+                        
+  
+  output$sumd <- renderUI({ 
+    HTML(glue::glue("<h3>&Sigma;(distance)&emsp;= {round(sum(noise()),digits=5)}</h3>"))})
+  output$sumda <- renderUI({
+    HTML(glue::glue("<h3 style='color: red;'>&Sigma;(|distance|) = {round(sum(abs(noise())),digits=5)}</h3>"))})
+  output$sumd2 <- renderUI({
+    HTML(glue::glue("<h3 style='color:#00e500;'>&Sigma;(distance)<sup>2</sup>&nbsp= {round(sum(noise()^2),digits=5)}</h3>"))})
+  
+  output$plot3d <- renderPlot({
+     
+func_absolute <- function(params,x,y) {
+
+     m <- params[1]
+     b <- params[2]
+     
+     return(sum(abs(y - m * x - b)))    
+
+}
+
+func_convex <- function(params,x,y) {
+
+     m <- params[1]
+     b <- params[2]
+     
+     return(sum((y - m * x - b)^2))    
+
+}
+
+fit_absolute <- optim(par = c(1,1),
+                      fn = func_absolute,
+                      x = x_i(),
+                      y = y_i(),
+                      control = list(fnscale = 1))$par
+
+fit_convex <- optim(par = c(1,1),
+                    fn = func_convex,
+                    x = x_i(),
+                    y = y_i(),
+                    control = list(fnscale = 1))$par
+
+par(cex.axis = 1.1, cex.lab = 1.1, font = 2, las = 1, lwd = 2,mfrow = c(1,2))
+
+curve(fit_absolute[1] * x + fit_absolute[2], 
+      xlim = c(0,6), 
+      ylim = c(0,40), 
+      col = 'red', 
+      add = F,
+      ylab = expression(y == m[absolute]%*%x + b[absolute]))
+
+segments(x0 = x_i(),
+         y0 = fit_absolute[1] * x_i() + fit_absolute[2],
+         x1 = x_i(),
+         y1 = y_i())
+
+points(x = x_i(),
+       y = y_i(),
+       pch = 16,
+       col = 4,
+       cex = 1.5)
+
+text(x = c(0.5,1.5,2.5), y = rep(32.5+5,3), c("slope","=",    round(fit_absolute[1], digits = 5) ))
+text(x = c(0.5,1.5,2.5), y = rep(27.5+5,3), c("intercept","=",round(fit_absolute[2], digits = 5) ))
+
+curve(fit_convex[1] * x + fit_convex[2], 
+      xlim = c(0,6), 
+      ylim = c(0,40), 
+      col = 'green', 
+      add = F,
+      ylab = expression(y == m[convex]%*%x + b[convex]))
+
+segments(x0 = x_i(),
+         y0 = fit_convex[1] * x_i() + fit_convex[2],
+         x1 = x_i(),
+         y1 = y_i())
+
+points(x = x_i(),
+       y = y_i(),
+       pch = 16,
+       col = 4,
+       cex = 1.5) 
+
+text(x = c(0.5,1.5,2.5), y = rep(32.5+5,3), c("slope","=",round(fit_convex[1], digits = 5) ))
+text(x = c(0.5,1.5,2.5), y = rep(27.5+5,3), c("intercept","=",round(fit_convex[2], digits = 5) ))
+
+})
+}
+shinyApp(ui = ui, server = server, options = list(height = "600px"))
+```
+
 <center><br>`r p`<br></center>
 
+# Summary
+
+## Maximum Likelihood
 
