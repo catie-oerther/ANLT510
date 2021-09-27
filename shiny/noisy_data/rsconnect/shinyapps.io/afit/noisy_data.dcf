@@ -1,0 +1,11 @@
+name: noisy_data
+title:
+username:
+account: afit
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4737324
+bundleId: 5074744
+url: https://afit.shinyapps.io/noisy_data/
+when: 1632705290.65355
+lastSyncTime: 1632705290.65355
