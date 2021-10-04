@@ -10,6 +10,8 @@ output:
 graphics: yes
 ---
 
+# Feature & Target Engineering
+
 ```{r child="resources/R/setup.Rmd"}
 ```
 
@@ -19,8 +21,6 @@ library(ggplot2)
 theme_set(theme_bw())
 ```
 
-# Feature & Target Engineering
-
 ## Introduction
 
 - Data pre-processing and engineering techniques generally refer to the ___addition, deletion, or transformation of data___
@@ -28,7 +28,7 @@ theme_set(theme_bw())
 - General Thoughts
 
     + Substantial time commitment
-    + 1 hr module doesn't do justice
+    + The time we have allotted for this doesn't do it justice
     + Not a "sexy" area to study but well worth your time
 
 - Additional resources:
@@ -51,22 +51,27 @@ theme_set(theme_bw())
 
 ```{r prereqs-pks}
 # packages
-
+library(modeldata)
+library(AmesHousing)
+library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(rsample)
 library(recipes)
+library(forecast)
 ```
 
 ```{r prereqs-data}
-## Data
 # ames data
-ames <- AmesHousing::make_ames()
+ames = AmesHousing::make_ames()
+# To view a snapshot of this data set run:
+### DT::datatable(head(ames, n = 20))
 
 # split data
 set.seed(123)
-split <- initial_split(ames, strata = "Sale_Price")
-ames_train <- training(split)
+split <- rsample::initial_split(ames, strata = "Sale_Price")
+ames_train <- rsample::training(split)
+ames_test  <- rsample::testing(split)
 ```
 
 # Target Engineering
@@ -90,15 +95,17 @@ $$
 $$
 
 ```{r skewed-residuals, fig.width=6, fig.height=3, echo=FALSE}
-library(tidyverse)
-models <- c("Non-log transformed model residuals", "Log transformed model residuals")
+models <- c("Non-log transformed model residuals",
+            "Log transformed model residuals")
 
-list(
+l = list(
   m1 = lm(Sale_Price ~ Year_Built, data = ames_train),
   m2 = lm(log(Sale_Price) ~ Year_Built, data = ames_train)
-) %>%
-  map2_dfr(models, ~ broom::augment(.x) %>% mutate(model = .y)) %>%
-  ggplot(aes(.resid)) +
+)
+
+purrr::map2_dfr(.x = l, .y = models, ~ broom::augment(.x) %>% 
+                    mutate(model = .y)) %>%
+  ggplot(aes(.std.resid)) +
   geom_histogram(bins = 75) +
   facet_wrap(~ model, scales = "free_x") +
   ylab(NULL) +
@@ -141,7 +148,8 @@ lambda  <- forecast::BoxCox.lambda(ames_train$Sale_Price)
 train_bc_y <- forecast::BoxCox(ames_train$Sale_Price, lambda)
 
 # Yeo-Johnson transformation
-yeo <- caret::preProcess(ames_train["Sale_Price"], method = "YeoJohnson")
+yeo <- caret::preProcess(ames_train["Sale_Price"], 
+                         method = "YeoJohnson")
 yeo <- predict(yeo, ames_train["Sale_Price"])
 
 # plot differences
@@ -197,7 +205,7 @@ AmesHousing::ames_raw %>%
 ```
 
 
-```{r missing-distribution-plot2, echo=FALSE, fig.height=5}
+```{r missing-distribution-plot2, echo=FALSE, fig.height=5, eval=!FALSE}
 extracat::visna(AmesHousing::ames_raw, sort = "b")
 ```
 
@@ -243,7 +251,7 @@ p1 <- ggplot() +
 
 # Mean imputation
 mean_juiced <- recipe(Sale_Price ~ ., data = impute_ames) %>%
-  step_meanimpute(Gr_Liv_Area) %>%
+  step_impute_mean(Gr_Liv_Area) %>%
   prep(training = impute_ames, retain = TRUE) %>%
   juice()
 
@@ -258,7 +266,7 @@ p2 <- ggplot() +
 
 # KNN imputation
 knn_juiced <- recipe(Sale_Price ~ ., data = impute_ames) %>%
-  step_knnimpute(Gr_Liv_Area) %>%
+  step_impute_knn(Gr_Liv_Area) %>%
   prep(training = impute_ames, retain = TRUE) %>%
   juice()
 
@@ -273,7 +281,7 @@ p3 <- ggplot() +
 
 # Bagged imputation
 bagged_juiced <- recipe(Sale_Price ~ ., data = impute_ames) %>%
-  step_bagimpute(Gr_Liv_Area) %>%
+  step_impute_bag(Gr_Liv_Area) %>%
   prep(training = impute_ames, retain = TRUE) %>%
   juice()
 
@@ -308,13 +316,13 @@ step_bagimpute()
 - reduce accuracy
 
 ```{r impact-on-accuracy, echo=FALSE}
-knitr::include_graphics("images/accuracy-comparison-1.png")
+knitr::include_graphics(find_resource("images","accuracy-comparison-1.png"))
 ```
 
 - increase computation time
 
 ```{r impact-on-time, echo=FALSE}
-knitr::include_graphics("images/impact-on-time-1.png")
+knitr::include_graphics(find_resource("images","impact-on-time-1.png"))
 ```
 
 ## Options for filtering 
@@ -431,7 +439,7 @@ caret::dummyVars( ~ ., ex1, fullRank = TRUE) %>%
 ```
 
 
-```{r one-hot-encoded, echo=FALSE}
+```{r one-hot-encoded, echo=FALSE, eval=FALSE}
 caret::dummyVars( ~ ., ex1, fullRank = FALSE) %>%
   predict(ex1) %>%
   knitr::kable() %>%
@@ -561,13 +569,16 @@ step_spatialsign()
     + Feature engineering should be done in isolation of each resampling iteration
 
 ```{r data-leakage, echo=FALSE, out.height="80%", out.width="80%"}
-knitr::include_graphics("images/data-leakage.png")
+knitr::include_graphics(find_resource("images","data-leakage.png")
+)
 ```
 
 
 ## Putting the process together
 
-- __recipes__ provides a convenient way to create feature engineering blueprints
+<div class="columns-2">
+<div id="container2">
+- The __recipes__ package [*link*](https://tidymodels.github.io/recipes/index.html){target="_blank"} provides a convenient way to create feature engineering blueprints
 
 - 3 main components to consider
 
@@ -575,14 +586,16 @@ knitr::include_graphics("images/data-leakage.png")
     2. prepare: estimate parameters based on training data
     3. bake/juice: apply blueprint to new data
 
-```{r recipes-icon, echo=FALSE, out.width="70%", out.height="70%"}
+- Check out all the available `step_xxx()` functions at http://bit.ly/step_functions
+</div>
+
+<div id="container1">
+```{r recipes-icon, echo=FALSE, out.width="35%", fig.align='right'}
 knitr::include_graphics("https://raw.githubusercontent.com/rstudio/hex-stickers/master/PNG/recipes.png")
 ```
+</div>
+</div>
 
-
-https://tidymodels.github.io/recipes/index.html
-
-- Check out all the available `step_xxx()` functions at http://bit.ly/step_functions
 
 ```{r define-blue-print}
 blueprint <- recipe(Sale_Price ~ ., data = ames_train) %>%
@@ -609,6 +622,8 @@ baked_train
 
 ## Simplifying with __caret__
 
+<div class="columns-2">
+<div id="container2">
 * __recipes__ provides a convenient way to create feature engineering blueprints
 
 * 3 main components to consider
@@ -619,14 +634,16 @@ baked_train
 * Luckily, __caret__ simplifies this process for us.
    1. We supply __caret__ a recipe
    2. __caret__ will prepare & bake within each resample 
+</div>
 
-
-```{r thank-goodness, echo=FALSE, out.width="90%", out.height="90%"}
+<div id="container1">
+```{r thank-goodness, echo=FALSE, out.width="50%", fig.align='right', out.height="50%"}
 knitr::include_graphics("https://media1.tenor.com/images/6358cb41e076a3c517e5a9988b1dc888/tenor.gif?itemid=5711499")
 ```
+</div>
+</div>
 
-
-## Putting the process together .red[`r anicon::faa("hand-point-right", color = "red", animate = "horizontal")` code chunk 12]
+## Putting the process together 
 
 - Let's add a blueprint to our modeling process for analyzing the Ames housing data:
 
@@ -640,13 +657,15 @@ knitr::include_graphics("https://media1.tenor.com/images/6358cb41e076a3c517e5a99
 
 - This grid search takes ~8 min 
 
-```{r example-blue-print-application, fig.height=4}
+```{r example-blue-print-application1}
 # 1. stratified sampling with the rsample package
 set.seed(123)
 split  <- initial_split(ames, prop = 0.7, strata = "Sale_Price")
 ames_train  <- training(split)
 ames_test   <- testing(split)
+```
 
+```{r example-blue-print-application2}
 # 2. Feature engineering
 blueprint <- recipe(Sale_Price ~ ., data = ames_train) %>%
   step_nzv(all_nominal()) %>%
@@ -654,20 +673,26 @@ blueprint <- recipe(Sale_Price ~ ., data = ames_train) %>%
   step_center(all_numeric(), -all_outcomes()) %>%
   step_scale(all_numeric(), -all_outcomes()) %>%
   step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE)
+```
 
+```{r example-blue-print-application3}
 # 3. create a resampling method
-cv <- trainControl(
+cv <- caret::trainControl(
   method = "repeatedcv", 
   number = 10, 
   repeats = 5
   )
+```
 
+```{r example-blue-print-application4}
 # 4. create a hyperparameter grid search
 hyper_grid <- expand.grid(k = seq(2, 25, by = 1))
+```
 
+```{r example-blue-print-application5, eval=FALSE}
 # 5. execute grid search with knn model
 #    use RMSE as preferred metric
-knn_fit <- train(
+knn_fit <- caret::train(
   blueprint, 
   data = ames_train, 
   method = "knn", 
@@ -675,11 +700,21 @@ knn_fit <- train(
   tuneGrid = hyper_grid,
   metric = "RMSE"
   )
+```
 
+```{r, echo=FALSE}
+knn_fit = readRDS("resources/R/knn_fit3.R")
+```
+
+
+```{r example-blue-print-application6}
 # 6. evaluate results
 # print model results
 knn_fit
+```
 
+
+```{r example-blue-print-application7, fig.height=4}
 # plot cross validation results
 ggplot(knn_fit$results, aes(k, RMSE)) + 
   geom_line() +
@@ -698,7 +733,7 @@ knitr::include_graphics("https://media1.tenor.com/images/2b6d0826f02a9ba7c9d4384
 ---
 # Questions?
 
-```{r unsupervised-questions, echo=FALSE, out.height="50%", out.width="50%"}
+```{r unsupervised-questions, echo=FALSE, out.height="50%", out.width="50%", eval=FALSE}
 knitr::include_graphics("http://www.whitehouse51.com/thumbnail/a/any-questions-meme-100-images-thanks-for-listening-any-1.jpeg")
 ```
 
