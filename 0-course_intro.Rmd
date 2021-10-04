@@ -427,135 +427,54 @@ p = plot_ly(z = loss2,
                                          project = list(z = TRUE))))
 ```
 
-# Noise
-
-```{r shiny_noise, echo=!FALSE, out.width='100%'}
-ui = fluidPage(
-      fluidRow(
-        column(width = 3,
-               shiny::br(),
-         sliderInput("sigma",
-                     HTML("<h3>Noise Value (&sigma;):</h3>"),
-                     min = 0.05,
-                     max = 5,
-                     value = 0.25,
-                     step = 0.05,
-                     animate = animationOptions(interval = 250, loop = F)),
-         shiny::br(),
-         shiny::hr(),
-         shiny::br(),
-         uiOutput("sumd"),
-         shiny::br(),
-         shiny::hr(),
-         shiny::br(),
-         uiOutput("sumda"),
-         shiny::br(),
-         shiny::hr(),
-         shiny::br(),
-         uiOutput("sumd2")),
-                column(width = 9,
-      mainPanel(width = "100%",
-         plotOutput("plot3d", height = "550px")))))
-
-
-server = function(input, output, session) {
-  
-  x_i <- reactive({seq(1, 6, by = 0.5)})
-  noise <- reactive({rnorm(length(x_i()), 0, input$sigma)})
-  y_i <- reactive({5 * x_i() + 3 + noise()})
-                        
-  
-  output$sumd <- renderUI({ 
-    HTML(glue::glue("<h3>&Sigma;(distance)&emsp;= {round(sum(noise()),digits=5)}</h3>"))})
-  output$sumda <- renderUI({
-    HTML(glue::glue("<h3 style='color: red;'>&Sigma;(|distance|) = {round(sum(abs(noise())),digits=5)}</h3>"))})
-  output$sumd2 <- renderUI({
-    HTML(glue::glue("<h3 style='color:#00e500;'>&Sigma;(distance)<sup>2</sup>&nbsp= {round(sum(noise()^2),digits=5)}</h3>"))})
-  
-  output$plot3d <- renderPlot({
-     
-func_absolute <- function(params,x,y) {
-
-     m <- params[1]
-     b <- params[2]
-     
-     return(sum(abs(y - m * x - b)))    
-
-}
-
-func_convex <- function(params,x,y) {
-
-     m <- params[1]
-     b <- params[2]
-     
-     return(sum((y - m * x - b)^2))    
-
-}
-
-fit_absolute <- optim(par = c(1,1),
-                      fn = func_absolute,
-                      x = x_i(),
-                      y = y_i(),
-                      control = list(fnscale = 1))$par
-
-fit_convex <- optim(par = c(1,1),
-                    fn = func_convex,
-                    x = x_i(),
-                    y = y_i(),
-                    control = list(fnscale = 1))$par
-
-par(cex.axis = 1.1, cex.lab = 1.1, font = 2, las = 1, lwd = 2,mfrow = c(1,2))
-
-curve(fit_absolute[1] * x + fit_absolute[2], 
-      xlim = c(0,6), 
-      ylim = c(0,40), 
-      col = 'red', 
-      add = F,
-      ylab = expression(y == m[absolute]%*%x + b[absolute]))
-
-segments(x0 = x_i(),
-         y0 = fit_absolute[1] * x_i() + fit_absolute[2],
-         x1 = x_i(),
-         y1 = y_i())
-
-points(x = x_i(),
-       y = y_i(),
-       pch = 16,
-       col = 4,
-       cex = 1.5)
-
-text(x = c(0.5,1.5,2.5), y = rep(32.5+5,3), c("slope","=",    round(fit_absolute[1], digits = 5) ))
-text(x = c(0.5,1.5,2.5), y = rep(27.5+5,3), c("intercept","=",round(fit_absolute[2], digits = 5) ))
-
-curve(fit_convex[1] * x + fit_convex[2], 
-      xlim = c(0,6), 
-      ylim = c(0,40), 
-      col = 'green', 
-      add = F,
-      ylab = expression(y == m[convex]%*%x + b[convex]))
-
-segments(x0 = x_i(),
-         y0 = fit_convex[1] * x_i() + fit_convex[2],
-         x1 = x_i(),
-         y1 = y_i())
-
-points(x = x_i(),
-       y = y_i(),
-       pch = 16,
-       col = 4,
-       cex = 1.5) 
-
-text(x = c(0.5,1.5,2.5), y = rep(32.5+5,3), c("slope","=",round(fit_convex[1], digits = 5) ))
-text(x = c(0.5,1.5,2.5), y = rep(27.5+5,3), c("intercept","=",round(fit_convex[2], digits = 5) ))
-
-})
-}
-shinyApp(ui = ui, server = server, options = list(height = "600px"))
-```
-
 <center><br>`r p`<br></center>
 
 # Summary
 
-## Maximum Likelihood
+## In this presentation...
+
+- You were introduced to several elements of machine learning models 
+
+    + Raw data
+    + Data processing
+    + Model structure
+    + Loss functions
+    + Parameters
+
+- We examined an application of the several loss functions to a idealized data and saw that the least squares loss function provided the best results
+
+- We can also expand upon this idealized data set by introducing noise to the data to make it "less ideal"
+
+    + Recall that the ideal data set was created using the function $y = 5 \times x + 3$, where the $y$ values are our outputs and the $x$ values are input values that I chose in the range $[1,6]$
+    + We can add noise to our output values by simply adding a "white noise" term such that the function that generates the data is now $y = 5 \times x + 3 + \sigma$
+    + The $\sigma$ term can be any distribution, but we prefer that it have $\text{mean }=0$ and is symmetric (i.e. it adds a positive, or negative value to each $y$)
+    + This can be visualized on the shiny app shown below (this app can also be accessed at [https://afit.shinyapps.io/noisy_data/](https://afit.shinyapps.io/noisy_data/){target="_blank"})
+    
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_app("https://afit.shinyapps.io/noisy_data/", height = "800px")
+```
+
+- Finally, we could also change assumed form of the model that we've chosen to describe the data
+
+    + The app shown below allows us to model the data using polynomials of various degree
+    + We see that higher degree polynomials can sometimes provide a better fit to the data
+    + However, selecting a more complex model could lead to overfitting - a subject we'll talk about more in later lectures
+
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_app("https://afit.shinyapps.io/polynomial_fit/", height = "600px")
+```
+
+- It's important that you recognize that there are often various forms of supervised models that could be used to describe the relationship that exists between the inputs and outputs in a data set
+
+- <focus>This is a main focus of this course</focus>
+
+- In the following presentations, we'll get into probability distributions and use them to test hypothesis about the world
+
+- This will lead us to discussing another method for fitting models to data <focus>maximum likelihood estimation</focus> 
+
+## Questions
+
+```{r, fig.align='center', out.width="30%", echo=FALSE}
+knitr::include_graphics(find_resource('images', "questions.gif"))
+```
 
