@@ -34,20 +34,20 @@ theme_set(theme_bw())
 
 ## Overview
 
-- The process of building machine learning models is <b><u>highly</u></b> iterative
+- The process of building machine learning models is <b><u>highly</u></b> iterative - where you may need to revisit any of these steps multiple times
 
-- It's common for many ML approaches to be applied, evaluated, and modified before a final, optimal model can be determined
+- In the course of building a ML model it's not unusual to apply, evaluate, and modify these steps before a final, optimal model is determined
 
-- A defensible process needs to be implemented to have confidence in the results
+- It important to have a documented and defensible process to have confidence in your model results
 
 ```{r general-process, echo=FALSE, out.width="70%"}
 knitr::include_graphics(find_resource("images","modeling_process.png"))
 ```
 
-- Note: The process(es) demonstrated in this course are <b><u>idealized</u></b> 
+- Note: Many of the model building process(es) demonstrated in the textbook are <b><u>idealized</u></b> 
 
     + You'll be directed on what steps to carry out
-    + The data are already cleaned
+    + The data sets have already been cleaned
     + The objective of the analysis has been made clear
 
 - In real data science projects, you'll work with clients that have 
@@ -59,50 +59,80 @@ knitr::include_graphics(find_resource("images","modeling_process.png"))
 
 - To follow along with the rest of this presentation, you'll need to install and load a few R Packages 
 
-```{r prereq-pkg}
+```{r prereq-pkg-install, eval=FALSE}
+## install packages into local library
+install.packages(c(rsample,
+                   modeldata,
+                   caret,
+                   tidyverse,
+                   cowplot,
+                   h2o,
+                   DT))
+```
+
+```{r prereq-pkg-lib}
+## load packages from your library into the current R session
 library(rsample)
 library(modeldata)
 library(caret)
 library(tidyverse)
 library(cowplot)
 library(h2o)
+library(DT)
 ```
 
-- Likewise, you'll want to load the following data sets
+- Likewise, you'll want to load the `ames` and `attrition` data sets from the `modeldata` package
 
 ```{r prereq-data}
-# ames data
-ames <- AmesHousing::make_ames()
+data(ames, package = 'modeldata')
+# To learn more about this data set run:
+### help(ames, package = "modeldata")
+# To view a snapshot of this data set run:
+### DT::datatable(head(ames, n = 20))
 
-# attrition data
-churn <- get(data(attrition, package = 'modeldata'))
+data(attrition, package = 'modeldata')
+# To learn more about this data set 
+### help(attrition, package = "modeldata")
+# To view a snapshot of this data set run:
+### DT::datatable(head(attrition, n = 20))
 ```
 
-- With the environment set up - Let's get started
+- Now that we have the environment set up and data sets loaded - Let's get started
 
 # Data Splitting
 
 ## Generalizability
 
-- At the end of this model building process we want an algorithm that is __Generalizable__
+- The goal of this model building process is to create a model that is __Generalizable__
 
     + Accurately learns the relationship between the features and the target variable in our current data
     + <blue>Can accurately predict the target variable in data that have not yet been collected</blue>
 
+- A model that isn't generalizable is said to be <focus>overfitting</focus> the training data
+
+    + This means that our model can almost perfectly describe the relationship between the inputs and outputs in the data on which it was trained
+    + However, this model does a poor job of describing the relationships when it is tasked with evaluating new data
+
 - We check for generalizability by simulating this process on our data set
 
-- Partition (aka split) our data set into two smaller data sets
+<div class="columns-2">
+<div id="container2">
+- Split our data into two smaller data sets
 
-    + <b>Training Set</b>: these data are used to develop feature sets, train our algorithms, tune hyper-parameters, compare across models, and all of the other activities required to reach a final model decision
+    + <b>Training Set</b>: these data are used to develop feature sets, train our algorithms, tune hyper-parameters, compare across models, and all of the other activities to reach a final model
 
     + <b>Test Set</b>: having chosen a final model, these data are used to estimate an unbiased assessment of the model’s performance (generalization error).
 
-- As you'll soon learn we'll spend a lot of time on our training set but <b>won't touch the test set until the end</b>
+- We spend a lot of time on our training set but <red>won't touch the test set until the end</red>
 
-```{r nope, echo=FALSE, out.height="30%", out.width="30%"}
+</div>
+
+<div id="container1">
+```{r nope, echo=FALSE, out.height="80%", out.width="40%", fig.align='right'}
 knitr::include_graphics(find_resource("images","nope.png"))
 ```
-
+</div>
+</div>
 
 ## What's the right split?
 
@@ -120,12 +150,12 @@ knitr::include_graphics(find_resource("images","nope.png"))
 
 - As the number of observations in the data set gets larger ($n>100K$)
 
-    + The choice of split has a lesser effect on the output of the model
+    + The choice of split has a lesser effect on the model outputs
     + However, a smaller training sample may significantly reduce the computation speed when building the model
 
 - As the number of model parameters $p$ increases ($p \geq n$)
 
-    + Larger samples sizes are often required to identify consistent signals in the features
+    + Larger sample sizes are often required to identify consistent signals in the features
 
 ## Mechanics of data splitting 
 
@@ -155,20 +185,20 @@ ggplot(train, aes(x = price)) +
 
 ## Your Turn!
 
-1. Use __rsample__ to split the Ames housing data (`ames`) and the Employee attrition data (`churn`) using stratified sampling and with a 70% split.
+1. Use __rsample__ to split the Ames housing data (`ames`) and the Employee attrition data (`attrition`) using stratified sampling and with a 70% split.
 
 ```{r, eval=FALSE}
 # ames data
 set.seed(123)
-ames_split <- initial_split(ames, prop = _____, strata = "Sale_Price")
-ames_train <- training(_____)
-ames_test  <- testing(_____)
+ames_split <- rsample::initial_split(ames, prop = _____, strata = "Sale_Price")
+ames_train <- rsample::training(_____)
+ames_test  <- rsample::testing(_____)
 
 # attrition data
 set.seed(123)
-churn_split <- initial_split(churn, prop = _____, strata = "Attrition")
-churn_train <- training(_____)
-churn_test  <- testing(_____)
+churn_split <- rsample::initial_split(attrition, prop = _____, strata = "Attrition")
+churn_train <- rsample::training(_____)
+churn_test  <- rsample::testing(_____)
 ```
 
 2. Verify that the distribution between training and test sets are similar.
@@ -179,6 +209,7 @@ set.seed(123)
 ames_split <- rsample::initial_split(ames, 
                                      prop = 0.7, 
                                      strata = "Sale_Price")
+
 ames_train <- rsample::training(ames_split)
 ames_test  <- rsample::testing(ames_split)
 
@@ -194,15 +225,16 @@ ggplot(ames_train, aes(x = Sale_Price)) +
 ```{r split-churn, fig.height=6}
 ## Employee Attrition Data
 set.seed(123)
-churn_split <- rsample::initial_split(churn, 
+churn_split <- rsample::initial_split(attrition, 
                                       prop = 0.7, 
                                       strata = "Attrition")
+
 churn_train <- rsample::training(churn_split)
 churn_test  <- rsample::testing(churn_split)
 
 # consistent response ratio between train & test
 table(churn_train$Attrition) %>% prop.table()
-table(churn_test$Attrition) %>% prop.table()
+table(churn_test$Attrition)  %>% prop.table()
 ```
 
 # Creating models in R
@@ -218,6 +250,7 @@ table(churn_test$Attrition) %>% prop.table()
     3. Variable name specification
 
 ```{r formula-interface, eval=FALSE}
+### 1. FORMULA INTERFACE 
 # Variables + interactions
 model_fn(Sale_Price ~ Neighborhood + Year_Sold + Neighborhood:Year_Sold,
          data = ames_train)
@@ -233,6 +266,8 @@ model_fn(log10(Sale_Price) ~ ns(Longitude, df = 3) + ns(Latitude, df = 3),
 
 
 ```{r XY-interface, eval=FALSE}
+### 2. X-Y INTERFACE
+
 # Usually, the variables must all be numeric
 features <- c("Year_Sold", "Longitude", "Latitude")
 model_fn(x = ames_train[, features], y = ames_train$Sale_Price)
@@ -240,21 +275,21 @@ model_fn(x = ames_train[, features], y = ames_train$Sale_Price)
 
 
 ```{r name-interface, eval=FALSE}
+### 3. VARIABLE NAME SPECIFICATION
+
 # specify x & y by character strings
-model_fn(
-  x = c("Year_Sold", "Longitude", "Latitude"),
-  y = "Sale_Price",
-  data = ames.h2o
-  )
+model_fn(x = c("Year_Sold", "Longitude", "Latitude"),
+         y = "Sale_Price",
+         data = ames.h2o)
 ```
 
-- _We can get around these inconsistencies with meta-engines_
+- We can get around these inconsistencies with <focus>meta-engines</focus>
 
-## Many engines
+## Meta engines
 
-- With the prevalence of ML packages available, this results in an abundance of direct and meta engines that can be used
+- The prevalence of ML packages has provided an abundance of direct and meta engines that can be used
 
-- For example, the following all produce the same linear regression model output
+- For example, each of the following produce the same linear regression model output
 
 ```{r lm-engines, eval=FALSE}
 lm_lm    <- stats::lm(Sale_Price ~ ., 
@@ -269,7 +304,7 @@ lm_caret <- caret::train(Sale_Price ~ .,
                          method = "lm")
 ```
 
-- `lm()` and `glm()` are two different engines that can be used to fit the linear model
+- `lm()` and `glm()` are two different direct engines that can be used to fit the linear model directly
 
 - `caret::train()` is a meta engine (aggregator) that allows you to apply almost any direct engine with `method = ?`
 
@@ -277,16 +312,30 @@ lm_caret <- caret::train(Sale_Price ~ .,
 
 <hr style="height:5px; visibility:hidden;" />
 
-| Algorithm | Package | Code |
-| --------- | ------- | ------------- |
-| Linear discriminant analysis | __MASS__ | `predict(obj)` |
-| Generalized linear model |	__stats__	| `predict(obj, type = "response")` |
-| Mixture discriminant analysis |	__mda__	|	`predict(obj, type = "posterior")` |
-| Decision tree |	__rpart__	|	`predict(obj, type = "prob")` |
-| Random Forest |	__ranger__ |	`predict(obj)$predictions` |
-| Gradient boosting machine |	__gbm__ |	`predict(obj, type = "response", n.trees)` |
-
-[Revised from Max Kuhn's 2019 RStudio Conference talk](https://resources.rstudio.com/rstudio-conf-2019/parsnip-a-tidy-model-interface)
+```{r, echo=FALSE}
+.mod = c("Linear discriminant analysis",
+         "Generalized linear model",
+         "Mixture discriminant analysis",
+         "Decision tree",
+         "Random Forest",
+         "Gradient boosting machine")
+.pkg = c("MASS",
+         "stats",
+         "mda",
+         "rpart",
+         "ranger",
+         "gbm")
+.code = c('`predict(obj)`',
+          '`predict(obj, type = "response")`',
+          '`predict(obj, type = "posterior")`',
+          '`predict(obj, type = "prob")`',
+          '`predict(obj)$predictions`',
+          '`predict(obj, type = "response", n.trees)`')
+.df = data.frame(Algorithm = .mod, 
+                 Package = .pkg,
+                 Code = .code)
+knitr::kable(.df, caption = "Revised from Max Kuhn's 2019 RStudio Conference talk\\n(https://resources.rstudio.com/rstudio-conf-2019/parsnip-a-tidy-model-interface)")
+```
 
 # Resampling Methods
 
@@ -323,16 +372,19 @@ knitr::include_graphics(find_resource("images","cv.png"))
 
 - Pro tip: for smaller data sets ($n < 10,000$), repeating a 10-fold cross validation 5 or 10 times will improve accuracy of your estimated performance
 
-- Note: cross-validation is performed to give you a better sense of how your model performs - it WILL NOT improve the performance of your model
+- cross-validation is performed to give you a better sense of how your model performs - it WILL NOT improve the performance of your model
 
 - In the code chunk below we implement 10-fold cross validation on the `mtcars` data set ($n = 32$)
 
-```{r cv-demo, echo=FALSE, fig.height=5}
+```{r cv-demo, echo=!FALSE, fig.height=5}
+### Create 10 cross-validation splits 
+### for the mtcars data set
 cv <- rsample::vfold_cv(mtcars, 10)
 
+### For each split
 cv_plot <- cv$splits %>%
   purrr::map2_dfr(seq_along(cv$splits), ~ mtcars %>% mutate(
-    Resample = paste0("Fold_", str_pad(.y, 2, pad = 0)),
+    Resample = paste0("Fold_", stringr::str_pad(.y, 2, pad = 0)),
     ID = row_number(),
     Data = ifelse(ID %in% .x$in_id, "Training", "Validation"))) %>%
   ggplot(aes(Resample, ID, fill = Data)) +
@@ -378,7 +430,7 @@ caret_cv <- caret::train(
 
 ```{r cv-external}
 # example of 10 fold CV with rsample::vfold_cv
-ext_cv <- vfold_cv(ames_train, v = 10)
+ext_cv <- rsample::vfold_cv(ames_train, v = 10)
 ext_cv
 names(ext_cv$splits$`1`)
 ```
@@ -399,13 +451,14 @@ knitr::include_graphics(find_resource("images","bootstrap-scheme.png"))
 
 - Pro tip For smaller data sets (*n < 500*), bootstrapping can have biased error estimates; use repeated k-fold or corrected bootstrapping methods.
 
-```{r sampling-comparison, echo=FALSE, fig.height=7.5}
+```{r sampling-comparison, echo=!FALSE, fig.height=7.5}
+### Create 10 sets of bootstrap samples
 boots <- rsample::bootstraps(mtcars, 10)
 
 boots_plot <- boots$splits %>%
   purrr:::map2_dfr(seq_along(boots$splits), ~ mtcars %>% 
              mutate(
-               Resample = paste0("Bootstrap_", str_pad(.y, 2, pad = 0)),
+               Resample = paste0("Bootstrap_", stringr::str_pad(.y, 2, pad = 0)),
                ID = row_number()
              ) %>%
              group_by(ID) %>%
@@ -445,18 +498,18 @@ cowplot::plot_grid(boots_plot, cv_plot, align = "v", nrow = 2)
 ```{r boot-caret, eval=FALSE}
 # Within a meta engine:
 # example of 10 bootstrap samples in caret
-caret_boot <- train(
+caret_boot <- caret::train(
   Sale_Price ~ .,
   data = ames_train,
   method = "lm",
-  trControl = trainControl(method = "boot",  number = 10) #<<
+  trControl = caret::trainControl(method = "boot",  number = 10) #<<
   )
 ```
 
 ```{r boot-external}
 # External to engine
 # example of 10 bootstrapped samples with rsample::bootstraps
-bootstraps(ames, times = 10)
+rsample::bootstraps(ames, times = 10)
 ```
 
 # Bias-Variance Trade-off
@@ -472,13 +525,13 @@ bootstraps(ames, times = 10)
 
 - Understanding how different sources of error lead to bias and variance helps us improve the data fitting process resulting in more accurate models.
 
-```{r bias-model, fig.height=5, echo=FALSE, warning=FALSE}
+```{r bias-model, fig.height=5, echo=!FALSE, warning=FALSE}
 # Simulate some nonlinear monotonic data
 set.seed(123)  # for reproducibility
 x <- seq(from = 0, to = 2 * pi, length = 500)
 y <- sin(x) + rnorm(length(x), sd = 0.3)
-df <- data.frame(x, y) %>%
-  filter(x < 4.5)
+
+df <- data.frame(x, y) %>% filter(x < 4.5)
 
 # single model fit
 bias_model <- lm(y ~ I(x^3), data = df)
@@ -518,16 +571,16 @@ gridExtra::grid.arrange(p1, p2, nrow = 1)
 ```
 
 
-```{r variance-model, fig.height=5, echo=FALSE, warning=FALSE}
+```{r variance-model, fig.height=5, echo=!FALSE, warning=FALSE}
 # Simulate some nonlinear monotonic data
 set.seed(123)  # for reproducibility
 x <- seq(from = 0, to = 2 * pi, length = 500)
 y <- sin(x) + rnorm(length(x), sd = 0.3)
-df <- data.frame(x, y) %>%
-  filter(x < 4.5)
+
+df <- data.frame(x, y) %>% filter(x < 4.5)
 
 # single model fit
-variance_model <- knnreg(y ~ x, k = 3, data = df)
+variance_model <- caret::knnreg(y ~ x, k = 3, data = df)
 df$predictions <- predict(variance_model, df)
 
 p1 <- ggplot(df, aes(x, y)) +
@@ -547,7 +600,7 @@ for(i in seq_len(bootstrap_n)) {
   df_sim <- df[index, ]
   
   # fit model and add predictions to results data frame
-  fit <- knnreg(y ~ x, k = 3, data = df_sim)
+  fit <- caret::knnreg(y ~ x, k = 3, data = df_sim)
   df_sim$predictions <- predict(fit, df_sim)
   df_sim$model <- paste0("model", i)
   df_sim$ob <- index
@@ -579,11 +632,13 @@ k_results <- NULL
 k <- c(2, 5, 10, 20, 50, 150)
 # fit many different models
 for(i in seq_along(k)) {
+  
   df_sim <- df
-  fit <- knnreg(y ~ x, k = k[i], data = df_sim)
+  fit <- caret::knnreg(y ~ x, k = k[i], data = df_sim)
   df_sim$predictions <- predict(fit, df_sim)
   df_sim$model <- paste0("k = ", str_pad(k[i], 3, pad = " "))
   k_results <- rbind(k_results, df_sim)
+  
 }
 
 ggplot() +
@@ -606,13 +661,15 @@ ggplot() +
 
 ```{r grid-search, cache=TRUE}
 # resampling procedure
-cv <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+cv <- caret::trainControl(method = "repeatedcv", 
+                          number = 10, 
+                          repeats = 10)
 
 # define grid search
 hyper_grid <- expand.grid(k = seq(2, 150, by = 2))
 
 # perform grid search with caret
-knn_fit <- train(
+knn_fit <- caret::train(
   x ~ y, 
   data = df, 
   method = "knn", 
@@ -625,7 +682,8 @@ knn_fit <- train(
 ggplot() +
   geom_line(data = knn_fit$results, aes(k, RMSE)) +
   geom_point(data = knn_fit$results, aes(k, RMSE)) +
-  geom_point(data = filter(knn_fit$results, k == as.numeric(knn_fit$bestTune)),
+  geom_point(data = filter(knn_fit$results, 
+                           k == as.numeric(knn_fit$bestTune)),
              aes(k, RMSE),
              shape = 21,
              fill = "yellow",
@@ -637,7 +695,10 @@ ggplot() +
 
 ```{r plot-best-k, echo=FALSE, fig.height=5}
 # single model fit
-best_model <- knnreg(y ~ x, k = knn_fit$bestTune$k, data = df)
+best_model <- caret::knnreg(y ~ x, 
+                            k = knn_fit$bestTune$k, 
+                            data = df)
+
 df$predictions <- predict(best_model, df)
 df$truth <- sin(df$x)
 
@@ -709,12 +770,15 @@ knitr::include_graphics(find_resource("images","confusion-matrix.png"))
 ```{r example-process-splitting, fig.height=5, cache=TRUE}
 # 1. stratified sampling with the rsample package
 set.seed(123)
-split  <- initial_split(ames, prop = 0.7, strata = "Sale_Price")
-ames_train  <- training(split)
-ames_test   <- testing(split)
+split  <- rsample::initial_split(ames, 
+                                 prop = 0.7, 
+                                 strata = "Sale_Price")
+
+ames_train  <- rsample::training(split)
+ames_test   <- rsample::testing(split)
 
 # 2. create a resampling method
-cv <- trainControl(
+cv <- caret::trainControl(
   method = "repeatedcv", 
   number = 10, 
   repeats = 5
@@ -725,7 +789,7 @@ hyper_grid <- expand.grid(k = seq(2, 26, by = 2))
 
 # 4. execute grid search with knn model
 #    use RMSE as preferred metric
-knn_fit <- train(
+knn_fit <- caret::train(
   Sale_Price ~ ., 
   data = ames_train, 
   method = "knn", 
