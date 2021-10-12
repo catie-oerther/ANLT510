@@ -1,0 +1,825 @@
+---
+title: "Wittenberg University - Master of Science in Analytics"
+subtitle: "ANLT 510 - Advanced Statistics and Modeling"
+author: "Day 1: Supervised Modeling Process"
+date: "`r format(Sys.Date(), format = '%d %b %Y')`"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+---
+
+# Introduction
+
+```{r child="resources/R/setup.Rmd"}
+```
+
+```{r ggsetup, include=FALSE, cache=FALSE}
+# set ggplot to black and white theme
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+- In this presentation you'll get introduced to several useful concepts for building machine learning models
+
+- These concepts are applicable regardless of the type of machine learning model you're building
+
+    + Contrasting the modeling process and the model itself
+    + Data splitting
+    + Several nuances in the R modeling ecosystem
+    + Resampling Methods
+    + The bias-variance trade-off
+    + Model evaluation metrics
+
+## Overview
+
+- The process of building machine learning models is <b><u>highly</u></b> iterative - where you may need to revisit any of these steps multiple times
+
+- In the course of building a ML model it's not unusual to apply, evaluate, and modify these steps before a final, optimal model is determined
+
+- It important to have a documented and defensible process to have confidence in your model results
+
+```{r general-process, echo=FALSE, out.width="70%"}
+knitr::include_graphics(find_resource("images","modeling_process.png"))
+```
+
+- Note: Many of the model building process(es) demonstrated in the textbook are <b><u>idealized</u></b> 
+
+    + You'll be directed on what steps to carry out
+    + The data sets have already been cleaned
+    + The objective of the analysis has been made clear
+
+- In real data science projects, you'll work with clients that have 
+
+    1. A vague idea of what they really want out of the project
+    2. An unrealistic belief in the quality (and quantity) of their data
+
+## Prerequisites
+
+- To follow along with the rest of this presentation, you'll need to install and load a few R Packages 
+
+```{r prereq-pkg-install, eval=FALSE}
+## install packages into local library
+install.packages(c(rsample,
+                   modeldata,
+                   caret,
+                   tidyverse,
+                   cowplot,
+                   h2o,
+                   DT))
+```
+
+```{r prereq-pkg-lib}
+## load packages from your library into the current R session
+library(rsample)
+library(modeldata)
+library(caret)
+library(tidyverse)
+library(cowplot)
+library(h2o)
+library(DT)
+```
+
+- Likewise, you'll want to load the `ames` and `attrition` data sets from the `modeldata` package
+
+```{r prereq-data}
+data(ames, package = 'modeldata')
+# To learn more about this data set run:
+### help(ames, package = "modeldata")
+# To view a snapshot of this data set run:
+### DT::datatable(head(ames, n = 20))
+
+data(attrition, package = 'modeldata')
+# To learn more about this data set 
+### help(attrition, package = "modeldata")
+# To view a snapshot of this data set run:
+### DT::datatable(head(attrition, n = 20))
+```
+
+- Now that we have the environment set up and data sets loaded - Let's get started
+
+# Data Splitting
+
+## Generalizability
+
+- The goal of this model building process is to create a model that is __Generalizable__
+
+    + Accurately learns the relationship between the features and the target variable in our current data
+    + <blue>Can accurately predict the target variable in data that have not yet been collected</blue>
+
+- A model that isn't generalizable is said to be <focus>overfitting</focus> the training data
+
+    + This means that our model can almost perfectly describe the relationship between the inputs and outputs in the data on which it was trained
+    + However, this model does a poor job of describing the relationships when it is tasked with evaluating new data
+
+- We check for generalizability by simulating this process on our data set
+
+<div class="columns-2">
+<div id="container2">
+- Split our data into two smaller data sets
+
+    + <b>Training Set</b>: these data are used to develop feature sets, train our algorithms, tune hyper-parameters, compare across models, and all of the other activities to reach a final model
+
+    + <b>Test Set</b>: having chosen a final model, these data are used to estimate an unbiased assessment of the model’s performance (generalization error).
+
+- We spend a lot of time on our training set but <red>won't touch the test set until the end</red>
+
+</div>
+
+<div id="container1">
+```{r nope, echo=FALSE, out.height="80%", out.width="40%", fig.align='right'}
+knitr::include_graphics(find_resource("images","nope.png"))
+```
+</div>
+</div>
+
+## What's the right split?
+
+- In the literature you'll see the following train-test split recommendations
+
+    + 60% (training) - 40% (testing)
+    + 70%-30%
+    + 80%-20%
+
+- For smaller data sets ($n<500$):
+
+    + Allocating too many observations to training won’t allow a good assessment of predictive performance. We may find a model that fits the training data very well, but is not generalizable (overfitting)
+    
+    + Allocating too many observations to testing won’t allow us to get a good assessment of model parameters
+
+- As the number of observations in the data set gets larger ($n>100K$)
+
+    + The choice of split has a lesser effect on the model outputs
+    + However, a smaller training sample may significantly reduce the computation speed when building the model
+
+- As the number of model parameters $p$ increases ($p \geq n$)
+
+    + Larger sample sizes are often required to identify consistent signals in the features
+
+## Mechanics of data splitting 
+
+- Two most common ways of splitting data include:
+
+    + Simple random sampling: randomly select observations
+
+    + Stratified sampling: preserving distributions <smaller><span class="explain">`r fontawesome::fa("external-link-alt")`</span><span class="tooltip">-<u>classification</u>: sampling within the classes to preserve the distribution of the outcome in the training and test sets <br/>-<u>regression</u>: determine the quartiles of the data set and sample within those artificial groups</span></smaller>
+
+```{r split-diamonds, eval=FALSE}
+set.seed(123) # for reproducibility
+split <- rsample::initial_split(diamonds, 
+                                strata = "price", 
+                                prop = 0.7)
+
+train <- rsample::training(split)
+test  <- rsample::testing(split)
+
+# Do the distributions line up? 
+ggplot(train, aes(x = price)) + 
+  geom_line(stat = "density", 
+            trim = TRUE) + 
+  geom_line(data = test, 
+            stat = "density", 
+            trim = TRUE, col = "red")
+```
+
+## Your Turn!
+
+1. Use __rsample__ to split the Ames housing data (`ames`) and the Employee attrition data (`attrition`) using stratified sampling and with a 70% split.
+
+```{r, eval=FALSE}
+# ames data
+set.seed(123)
+ames_split <- rsample::initial_split(ames, prop = _____, strata = "Sale_Price")
+ames_train <- rsample::training(_____)
+ames_test  <- rsample::testing(_____)
+
+# attrition data
+set.seed(123)
+churn_split <- rsample::initial_split(attrition, prop = _____, strata = "Attrition")
+churn_train <- rsample::training(_____)
+churn_test  <- rsample::testing(_____)
+```
+
+2. Verify that the distribution between training and test sets are similar.
+
+```{r split-ames, fig.height=6}
+## Ames Housing Data
+set.seed(123)
+ames_split <- rsample::initial_split(ames, 
+                                     prop = 0.7, 
+                                     strata = "Sale_Price")
+
+ames_train <- rsample::training(ames_split)
+ames_test  <- rsample::testing(ames_split)
+
+# Do the distributions line up? 
+ggplot(ames_train, aes(x = Sale_Price)) + 
+  geom_line(stat = "density", 
+            trim = TRUE) + 
+  geom_line(data = ames_test, 
+            stat = "density", 
+            trim = TRUE, col = "red")
+```
+
+```{r split-churn, fig.height=6}
+## Employee Attrition Data
+set.seed(123)
+churn_split <- rsample::initial_split(attrition, 
+                                      prop = 0.7, 
+                                      strata = "Attrition")
+
+churn_train <- rsample::training(churn_split)
+churn_test  <- rsample::testing(churn_split)
+
+# consistent response ratio between train & test
+table(churn_train$Attrition) %>% prop.table()
+table(churn_test$Attrition)  %>% prop.table()
+```
+
+# Creating models in R
+
+## Many interfaces
+
+- To fit a model to our data, the model terms must be specified
+
+- There are <b>three main interfaces</b> for doing this:
+
+    1. Formula interface
+    2. XY interface
+    3. Variable name specification
+
+```{r formula-interface, eval=FALSE}
+### 1. FORMULA INTERFACE 
+# Variables + interactions
+model_fn(Sale_Price ~ Neighborhood + Year_Sold + Neighborhood:Year_Sold,
+         data = ames_train)
+
+# Shorthand for all predictors
+model_fn(Sale_Price ~ ., 
+         data = ames_train)
+
+# Inline functions / transformations
+model_fn(log10(Sale_Price) ~ ns(Longitude, df = 3) + ns(Latitude, df = 3),
+         data = ames_train)
+```
+
+
+```{r XY-interface, eval=FALSE}
+### 2. X-Y INTERFACE
+
+# Usually, the variables must all be numeric
+features <- c("Year_Sold", "Longitude", "Latitude")
+model_fn(x = ames_train[, features], y = ames_train$Sale_Price)
+```
+
+
+```{r name-interface, eval=FALSE}
+### 3. VARIABLE NAME SPECIFICATION
+
+# specify x & y by character strings
+model_fn(x = c("Year_Sold", "Longitude", "Latitude"),
+         y = "Sale_Price",
+         data = ames.h2o)
+```
+
+- We can get around these inconsistencies with <focus>meta-engines</focus>
+
+## Meta engines
+
+- The prevalence of ML packages has provided an abundance of direct and meta engines that can be used
+
+- For example, each of the following produce the same linear regression model output
+
+```{r lm-engines, eval=FALSE}
+lm_lm    <- stats::lm(Sale_Price ~ ., 
+                      data = ames_train)
+
+lm_glm   <- stats::glm(Sale_Price ~ ., 
+                       data = ames_train, 
+                       family = gaussian)
+
+lm_caret <- caret::train(Sale_Price ~ ., 
+                         data = ames_train, 
+                         method = "lm")
+```
+
+- `lm()` and `glm()` are two different direct engines that can be used to fit the linear model directly
+
+- `caret::train()` is a meta engine (aggregator) that allows you to apply almost any direct engine with `method = ?`
+
+- Using direct engines provides more flexibility but requires you to be familiar with the syntax nuances
+
+<hr style="height:5px; visibility:hidden;" />
+
+```{r, echo=FALSE}
+.mod = c("Linear discriminant analysis",
+         "Generalized linear model",
+         "Mixture discriminant analysis",
+         "Decision tree",
+         "Random Forest",
+         "Gradient boosting machine")
+.pkg = c("MASS",
+         "stats",
+         "mda",
+         "rpart",
+         "ranger",
+         "gbm")
+.code = c('`predict(obj)`',
+          '`predict(obj, type = "response")`',
+          '`predict(obj, type = "posterior")`',
+          '`predict(obj, type = "prob")`',
+          '`predict(obj)$predictions`',
+          '`predict(obj, type = "response", n.trees)`')
+.df = data.frame(Algorithm = .mod, 
+                 Package = .pkg,
+                 Code = .code)
+knitr::kable(.df, caption = "Revised from Max Kuhn's 2019 RStudio Conference talk\\n(https://resources.rstudio.com/rstudio-conf-2019/parsnip-a-tidy-model-interface)")
+```
+
+# Resampling Methods
+
+## Overview
+
+- ___Resampling___ provides an approach for us to repeatedly fit a model of interest to parts of the training data and testing the performance on other parts
+
+- Allows us to _estimate_ the generalization error while training, tuning, and comparing models without using the test data set
+
+- The two most commonly used resampling methods include 
+
+    + _k_-fold cross validation 
+    + bootstrapping
+
+```{r resampling, echo=FALSE, out.width="70%", fig.cap="Image by Max Kuhn (https://bookdown.org/max/FES/review-predictive-modeling-process.html#fig:review-resamp-scheme)"}
+knitr::include_graphics(find_resource("images","resampling.png"))
+```
+
+## _K_-fold cross valiation
+
+- Randomly divides the training data into $k$ groups of approximately equal size
+
+- Assign one block as the test block and the other $k-1$ blocks as training blocks
+
+- Train the model on each of the folds (aka training blocks) and evaluate its performance on test block
+
+- Average the model's performance across all folds
+
+- $k$ is often taken to be 5 or 10
+
+```{r cv-icon, echo=FALSE, out.width="70%"}
+knitr::include_graphics(find_resource("images","cv.png"))
+```
+
+- Pro tip: for smaller data sets ($n < 10,000$), repeating a 10-fold cross validation 5 or 10 times will improve accuracy of your estimated performance
+
+- cross-validation is performed to give you a better sense of how your model performs - it WILL NOT improve the performance of your model
+
+- In the code chunk below we implement 10-fold cross validation on the `mtcars` data set ($n = 32$)
+
+```{r cv-demo, echo=!FALSE, fig.height=5}
+### Create 10 cross-validation splits 
+### for the mtcars data set
+cv <- rsample::vfold_cv(mtcars, 10)
+
+### For each split
+cv_plot <- cv$splits %>%
+  purrr::map2_dfr(seq_along(cv$splits), ~ mtcars %>% mutate(
+    Resample = paste0("Fold_", stringr::str_pad(.y, 2, pad = 0)),
+    ID = row_number(),
+    Data = ifelse(ID %in% .x$in_id, "Training", "Validation"))) %>%
+  ggplot(aes(Resample, ID, fill = Data)) +
+  geom_tile() +
+  scale_fill_manual(values = c("#f2f2f2", "#AAAAAA")) +
+  scale_y_reverse("Observation ID", 
+                  breaks = 1:nrow(mtcars), 
+                  expand = c(0, 0)) +
+  scale_x_discrete(NULL, expand = c(0, 0)) +
+  theme_classic() +
+  theme(legend.title=element_blank())
+
+cv_plot
+```
+
+## Applying $k$-fold cross valiation
+
+- There are three main approaches to implement cross-validation
+
+    + Via a direct modeling engine
+    + via a meta modeling engine
+    + Indepently, outside of a model engine
+
+```{r cv-h2o, eval=FALSE}
+# example of 10 fold CV in h2o direct engine
+h2o_cv <- h2o::h2o.glm(
+  x = -1, 
+  y = 1, 
+  training_frame = h2o::as.h2o(mtcars),
+  nfolds = 10 #<<
+  )
+```
+
+```{r cv-caret, eval=FALSE}
+# example of 10 fold CV in caret
+caret_cv <- caret::train(
+  Sale_Price ~ .,
+  data = ames_train,
+  method = "lm",
+  trControl = caret::trainControl(method = "cv",  number = 10) #<<
+  )
+```
+
+```{r cv-external}
+# example of 10 fold CV with rsample::vfold_cv
+ext_cv <- rsample::vfold_cv(ames_train, v = 10)
+ext_cv
+names(ext_cv$splits$`1`)
+```
+
+## Bootstrapping
+
+- A bootstrap sample is the same size as the training set but each data point is selected ___with replacement___
+
+    + <b>Analysis set</b> Will contain more than one replicate of a training set instance
+
+    + <b>Assessment set</b> Contains all samples that were never included in the corresponding bootstrap set. Often called the ___"out-of-bag"___ sample and can vary in size!
+
+```{r bootstrap-icon, echo=FALSE, out.width="70%"}
+knitr::include_graphics(find_resource("images","bootstrap-scheme.png"))
+```
+
+- On average, 63.21% of the training set is contained at least once in the bootstrap sample
+
+- Pro tip For smaller data sets (*n < 500*), bootstrapping can have biased error estimates; use repeated k-fold or corrected bootstrapping methods.
+
+```{r sampling-comparison, echo=!FALSE, fig.height=7.5}
+### Create 10 sets of bootstrap samples
+boots <- rsample::bootstraps(mtcars, 10)
+
+boots_plot <- boots$splits %>%
+  purrr:::map2_dfr(seq_along(boots$splits), ~ mtcars %>% 
+             mutate(
+               Resample = paste0("Bootstrap_", stringr::str_pad(.y, 2, pad = 0)),
+               ID = row_number()
+             ) %>%
+             group_by(ID) %>%
+             mutate(Replicates = factor(sum(ID == .x$in_id)))) %>%
+  ggplot(aes(Resample, ID, fill = Replicates)) +
+  geom_tile() +
+  scale_fill_manual(values = c("#FFFFFF", "#F5F5F5", "#BEBEBE", "#808080", "#404040", "#000000")) +
+  scale_y_reverse("Observation ID", 
+                  breaks = 1:nrow(mtcars), 
+                  expand = c(0, 0)) +
+  scale_x_discrete(NULL, expand = c(0, 0)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  ggtitle("Bootstrap sampling") 
+
+cv_plot <- cv_plot + 
+  ggtitle("10-fold cross validation") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+cowplot::plot_grid(boots_plot, cv_plot, align = "v", nrow = 2)
+```
+
+
+## Applying
+
+- Similar to cross validation, we can incorporate bootstrapping with:
+
+    + meta engines
+    + external to engines
+
+- However, bootstrapping is more of an internal resampling procedure that is naturally built into certain ML algorithms:
+   
+    + Bagging
+    + Random forests
+    + GBMs
+
+```{r boot-caret, eval=FALSE}
+# Within a meta engine:
+# example of 10 bootstrap samples in caret
+caret_boot <- caret::train(
+  Sale_Price ~ .,
+  data = ames_train,
+  method = "lm",
+  trControl = caret::trainControl(method = "boot",  number = 10) #<<
+  )
+```
+
+```{r boot-external}
+# External to engine
+# example of 10 bootstrapped samples with rsample::bootstraps
+rsample::bootstraps(ames, times = 10)
+```
+
+# Bias-Variance Trade-off
+
+## Overview
+
+- Prediction errors can be decomposed into two main sub-components we have control over:
+
+    + Errors due to “bias”
+    + Errors due to “variance”
+   
+- There is a trade-off between a model’s ability to minimize bias and variance. 
+
+- Understanding how different sources of error lead to bias and variance helps us improve the data fitting process resulting in more accurate models.
+
+```{r bias-model, fig.height=5, echo=!FALSE, warning=FALSE}
+# Simulate some nonlinear monotonic data
+set.seed(123)  # for reproducibility
+x <- seq(from = 0, to = 2 * pi, length = 500)
+y <- sin(x) + rnorm(length(x), sd = 0.3)
+
+df <- data.frame(x, y) %>% filter(x < 4.5)
+
+# single model fit
+bias_model <- lm(y ~ I(x^3), data = df)
+df$predictions <- predict(bias_model, df)
+
+p1 <- ggplot(df, aes(x, y)) +
+  geom_point(alpha = .3) +
+  geom_line(aes(x, predictions), size = 1.5, color = "dodgerblue") +
+  scale_y_continuous("Response", limits = c(-1.75, 1.75), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0, 4.5), expand = c(0, 0)) +
+  ggtitle("Single biased model fit")
+
+# bootstrapped model fit
+bootstrap_n <- 25
+bootstrap_results <- NULL
+for(i in seq_len(bootstrap_n)) {
+  # reproducible sampled data frames
+  set.seed(i)
+  index <- sample(seq_len(nrow(df)), nrow(df), replace = TRUE)
+  df_sim <- df[index, ]
+  
+  # fit model and add predictions to results data frame
+  fit <- lm(y ~ I(x^3), data = df_sim)
+  df_sim$predictions <- predict(fit, df_sim)
+  df_sim$model <- paste0("model", i)
+  df_sim$ob <- index
+  bootstrap_results <- rbind(bootstrap_results, df_sim)
+}
+
+p2 <- ggplot(bootstrap_results, aes(x, predictions, color = model)) +
+  geom_line(show.legend = FALSE, size = .5) +
+  scale_y_continuous("Response", limits = c(-1.75, 1.75), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0, 4.5), expand = c(0, 0)) +
+  ggtitle("25 biased models (bootstrapped)")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1)
+```
+
+
+```{r variance-model, fig.height=5, echo=!FALSE, warning=FALSE}
+# Simulate some nonlinear monotonic data
+set.seed(123)  # for reproducibility
+x <- seq(from = 0, to = 2 * pi, length = 500)
+y <- sin(x) + rnorm(length(x), sd = 0.3)
+
+df <- data.frame(x, y) %>% filter(x < 4.5)
+
+# single model fit
+variance_model <- caret::knnreg(y ~ x, k = 3, data = df)
+df$predictions <- predict(variance_model, df)
+
+p1 <- ggplot(df, aes(x, y)) +
+  geom_point(alpha = .3) +
+  geom_line(aes(x, predictions), size = 1.5, color = "dodgerblue") +
+  scale_y_continuous("Response", limits = c(-1.75, 1.75), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0, 4.5), expand = c(0, 0)) +
+  ggtitle("Single high variance model fit")
+
+# bootstrapped model fit
+bootstrap_n <- 25
+bootstrap_results <- NULL
+for(i in seq_len(bootstrap_n)) {
+  # reproducible sampled data frames
+  set.seed(i)
+  index <- sample(seq_len(nrow(df)), nrow(df), replace = TRUE)
+  df_sim <- df[index, ]
+  
+  # fit model and add predictions to results data frame
+  fit <- caret::knnreg(y ~ x, k = 3, data = df_sim)
+  df_sim$predictions <- predict(fit, df_sim)
+  df_sim$model <- paste0("model", i)
+  df_sim$ob <- index
+  bootstrap_results <- rbind(bootstrap_results, df_sim)
+}
+
+p2 <- ggplot(bootstrap_results, aes(x, predictions, color = model)) +
+  geom_line(show.legend = FALSE) +
+  scale_y_continuous("Response", limits = c(-1.75, 1.75), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0, 4.5), expand = c(0, 0)) +
+  ggtitle("25 high variance models (bootstrapped)")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1)
+```
+
+- Some models naturally have higher bias - while others have higher variance
+
+    + high bias - generalized linear models
+    + high variance - tree-based models, NNets, KNN
+
+- Hyperparameters can help to control bias-variance trade-off   
+
+## Hyperparameter tuning
+
+- Hyperparameters (aka _tuning parameters_) can be thought of as "knobs" to control of complexity of machine learning algorithms and, therefore, the bias-variance trade-off
+
+```{r example-knn, fig.width=12, fig.height=6, echo=FALSE}
+k_results <- NULL
+k <- c(2, 5, 10, 20, 50, 150)
+# fit many different models
+for(i in seq_along(k)) {
+  
+  df_sim <- df
+  fit <- caret::knnreg(y ~ x, k = k[i], data = df_sim)
+  df_sim$predictions <- predict(fit, df_sim)
+  df_sim$model <- paste0("k = ", str_pad(k[i], 3, pad = " "))
+  k_results <- rbind(k_results, df_sim)
+  
+}
+
+ggplot() +
+  geom_point(data = df, aes(x, y), alpha = .3) +
+  geom_line(data = k_results, aes(x, predictions), color = "dodgerblue", size = 1.5) +
+  scale_y_continuous("Response", limits = c(-1.75, 1.75), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0, 4.5), expand = c(0, 0)) +
+  facet_wrap(~ model)
+```
+
+- $k$-nearest neighbor model with differing values for $k$
+
+    + Small $k$ value has too much variance
+    + Big $k$ value has too much bias
+    + How do we find the optimal value?
+
+## Grid search
+
+- A grid search is an automated approach to searching across many combinations of hyperparameter values
+
+```{r grid-search, cache=TRUE}
+# resampling procedure
+cv <- caret::trainControl(method = "repeatedcv", 
+                          number = 10, 
+                          repeats = 10)
+
+# define grid search
+hyper_grid <- expand.grid(k = seq(2, 150, by = 2))
+
+# perform grid search with caret
+knn_fit <- caret::train(
+  x ~ y, 
+  data = df, 
+  method = "knn", 
+  trControl = cv, 
+  tuneGrid = hyper_grid
+  )
+```
+
+```{r plot-grid-search-results, echo=FALSE, fig.height=5}
+ggplot() +
+  geom_line(data = knn_fit$results, aes(k, RMSE)) +
+  geom_point(data = knn_fit$results, aes(k, RMSE)) +
+  geom_point(data = filter(knn_fit$results, 
+                           k == as.numeric(knn_fit$bestTune)),
+             aes(k, RMSE),
+             shape = 21,
+             fill = "yellow",
+             color = "black",
+             stroke = 1,
+             size = 2) +
+  scale_y_continuous("Error (RMSE)")
+```
+
+```{r plot-best-k, echo=FALSE, fig.height=5}
+# single model fit
+best_model <- caret::knnreg(y ~ x, 
+                            k = knn_fit$bestTune$k, 
+                            data = df)
+
+df$predictions <- predict(best_model, df)
+df$truth <- sin(df$x)
+
+ggplot(df, aes(x, y)) +
+  geom_point(alpha = .3) +
+  geom_line(aes(y = truth), lty = "dashed", size = 1.5) +
+  geom_line(aes(x, predictions), size = 1.5, color = "dodgerblue") +
+  scale_y_continuous("Response", limits = c(-1.75, 1.75), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0, 4.5), expand = c(0, 0)) +
+  ggtitle("Optimal KNN model")
+```
+
+# Model Evaluation Metrics
+
+## Overview
+
+- Regression
+
+    + Mean Square Error (MSE)
+    + Root Mean Square Error (RMSE)
+    + Mean Absolute Error (MAE)
+    + Mean Absolute Percent Error (MAPE)
+    + Root Mean Squared Logarithmic Error (RMSLE)
+
+- Classification
+
+    + Classification Accuracy
+    + Recall vs. Specificity
+    + $F_1$ Score
+    + Log Loss
+
+## Model evaluation
+
+- Regression
+
+    + Mean Square Error (MSE)
+    + Root Mean Square Error (RMSE)
+    + Mean Absolute Error (MAE)
+    + Mean Absolute Percent Error (MAPE)
+    + Root Mean Squared Logarithmic Error (RMSLE)
+
+$$MSE = \frac{1}{n}\sum^n_{i=1}(y_i - \hat y_i)^2 $$
+
+- Classification
+
+    + Classification Accuracy
+    + Recall vs. Specificity
+    + $F_1$ Score
+    + Log Loss
+
+```{r cm, echo=FALSE, out.width="70%", out.height="80%"}
+knitr::include_graphics(find_resource("images","confusion-matrix.png"))
+```
+
+# Putting the process together
+
+## Overview
+
+- Let's put these pieces together and analyze the Ames housing data:
+
+    + 1. Split into training vs testing data
+    + 2. Specify a resampling procedure
+    + 3. Create our hyperparameter grid
+    + 4. Execute grid search
+    + 5. Evaluate performance
+
+- This grid search takes ~2 min
+
+```{r example-process-splitting, fig.height=5, cache=TRUE}
+# 1. stratified sampling with the rsample package
+set.seed(123)
+split  <- rsample::initial_split(ames, 
+                                 prop = 0.7, 
+                                 strata = "Sale_Price")
+
+ames_train  <- rsample::training(split)
+ames_test   <- rsample::testing(split)
+
+# 2. create a resampling method
+cv <- caret::trainControl(
+  method = "repeatedcv", 
+  number = 10, 
+  repeats = 5
+  )
+
+# 3. create a hyperparameter grid search
+hyper_grid <- expand.grid(k = seq(2, 26, by = 2))
+
+# 4. execute grid search with knn model
+#    use RMSE as preferred metric
+knn_fit <- caret::train(
+  Sale_Price ~ ., 
+  data = ames_train, 
+  method = "knn", 
+  trControl = cv, 
+  tuneGrid = hyper_grid,
+  metric = "RMSE"
+  )
+
+# 5. evaluate results
+# print model results
+knn_fit
+
+# plot cross validation results
+ggplot(knn_fit$results, aes(k, RMSE)) + 
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::dollar)
+```
+
+## Is this the best predictive model we can find?
+
+- We may have identified the  optimal $k$-nearest neighbor model for our given data set but this doesn't mean we've found the best possible overall model
+
+- Moreover, we have not considered potential feature and target engineering options 
+
+# Questions?
+
+```{r unsupervised-questions, echo=FALSE, out.height="50%", out.width="50%"}
+knitr::include_graphics("https://media.makeameme.org/created/i-love-questions.jpg")
+```
+
+
+

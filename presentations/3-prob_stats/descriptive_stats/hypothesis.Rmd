@@ -1,0 +1,292 @@
+---
+output: html_document
+---
+
+# Hypothesis testing
+
+## General setup
+
+- In hypothesis testing we use a random sample to decide between two contradictory hypotheses 
+
+    + Let $S$ be the set of possible values for an unknown parameter $\theta$
+    + Suppose we can partition $S$ into two disjoint sets $S_0$ and $S_1$
+    + Let $H_0$ be the hypothesis that $\theta\in S_0$, and let $H_1$ be the hypothesis that $\theta\in S_1$
+
+- To decide whether to choose $H_0$ or $H_1$, we use a test statistic, denoted by $W$ where $W=W(X_1,X_2,\ldots,X_n)$
+
+    + Assuming $H_0$, we can define the set $A$ as the set of possible values of $W$ for which we would accept $H_0$
+    + The set $A$ is called the acceptance region, while the set $R=S−A$ is said to be the rejection region
+
+# Hypothesis testing for the mean
+
+- Assume we have a random sample $X_1,X_2,\ldots,X_n$ from a distribution 
+
+- Our goal is to make an inference about the mean of the distribution $\mu$ - we can consider three distinct testing scenarios
+
+$$
+\begin{aligned}
+\text{Case 1: } &\text{A two-sided test}\\ 
+&H_O \text{ is a simple hypothesis and } H_1 \text{ is a two-sided hypothesis (includes both } \mu<\mu_0 \text{ and } \mu>\mu_0)\\\\
+ &H_0:\mu=\mu_0\\
+ &H_1:\mu\ne\mu_0\\\\
+\text{Case 2: } &\text{A one-sided test}\\ 
+&H_O \text{ and } H_1 \text{ are composite one-sided hypotheses}\\\\
+ &H_0:\mu\leq\mu_0\\
+ &H_1:\mu\gt\mu_0\\\\
+\text{Case 3: } &\text{A one-sided test}\\ 
+&H_O \text{ and } H_1 \text{ are composite one-sided hypotheses}\\\\
+ &H_0:\mu\geq\mu_0\\
+ &H_1:\mu\lt\mu_0
+\end{aligned}
+$$
+
+- In each of these scenarios, our test statistic is based upon sample mean 
+
+$$
+\overline{X}=\frac{X_1+X_2+\ldots+X_n}{n}
+$$
+
+- It's important that we be able to state the distribution of any test statistic we use
+
+- If we know the variance of the $X_i$'s, $\operatorname{Var}(X_i)=\sigma^2$, then our test statistic is the normalized sample mean (assuming H0)
+
+$$
+W(X_1,X_2, \cdots,X_n)=\frac{\overline{X}-\mu_0}{\sigma / \sqrt{n}}
+$$
+
+- If we do not know the variance of the $X_i$'s, we use the sample standard deviation, $S$
+
+$$
+ W(X_1,X_2, \cdots,X_n)=\frac{\overline{X}-\mu_0}{S / \sqrt{n}}
+$$
+
+- For either test statistic we've already shown that the distribution of $W$ converges to a standard normal distribution for sample sizes around 30 or larger.
+
+# Example: Two sided test for the mean
+
+## Background
+
+- Suppose we are tasked with designing an $\alpha$-level hypothesis test where
+
+$$
+\begin{aligned}
+ &H_0:\mu=\mu_0\\
+ &H_1:\mu\ne\mu_0
+\end{aligned}
+$$
+
+- Further suppose that the random sample $X_1,X_2,\ldots,X_n$ we observe is normally distributed, where $\mu$ is unknown but $\sigma$ is known
+
+```{r}
+# Number observations
+N = 100
+
+# choose level alpha
+alpha = 0.5
+
+# location parameters
+calibrated = 5.42
+uncalibrated = 2.65
+
+# scale parameter
+scl = 0.994
+
+# Generate random samples
+obs = rnorm(N, mean = calibrated, sd = scl)
+```
+
+## Test Statistic
+
+- As was previously stated, the test statistic $W$ for this scenario is
+
+$$
+ W(X_1,X_2, \cdots,X_n)=\frac{\overline{X}-\mu_0}{\sigma / \sqrt{n}}.
+$$
+
+```{r}
+# compute the value of W for the observed random sample
+W = (mean(obs) - calibrated) / (scl / sqrt(N)) 
+```
+
+## Analysis
+
+- In the case that $H_O$ is correct we expect that $W$ will follow a standard normal distribution $NOR(0,1)$ 
+
+- Thus, we choose a threshold value, $c$
+
+    + If $\vert W \vert\leq c$, we accept $H_0$
+    + If $\vert W \vert\gt c$, accept $H_1$
+
+- To choose c, we say that $P(|W| > c \; | \; H_0) =\alpha$ where we choose the value of $\alpha$
+
+- Since the standard normal PDF is symmetric around 0, we have $P(|W| > c \; | \; H_0) = 2 P(W>c  | \; H_0)$
+
+- This implies that $P(W>c|H_0)=α/2$ and $c = z_{_{\alpha/2}}$
+
+- Therefore, we accept $H_0$ if the following statement is true and reject it otherwise
+
+$$
+\left|\frac{\overline{X}-\mu_0}{\sigma / \sqrt{n}} \right| \leq z_{\frac{\alpha}{2}},
+$$
+
+```{r}
+# Find z value at alpha / 2
+z = qnorm(alpha / 2, mean = 0, sd = 1)
+
+W ; z/2
+abs(W) <= z/2
+```
+
+- Use the function below to visualize the critical region for a given value of alpha
+
+```{r}
+view_crit_region <- function(alpha){
+  
+  # calculate the pdf over a range of values
+  xx = seq(-4, +4, 0.001)                                                   
+  yy = dnorm(xx) 
+  
+  plot(xx, yy, lwd=2, type = "l", ylim = c(0,0.4))
+  abline(v = qnorm(alpha / 2, mean = 0, sd = 1))
+  abline(v = qnorm(1-alpha / 2, mean = 0, sd = 1))
+  
+  }
+view_crit_region(0.05)
+```
+
+<!-- ## Types of errors -->
+
+<!-- - There are two possible errors that we can make -->
+
+<!--     + We define a type I error as the event that we reject $H_0$ when $H_0$ is true -->
+<!--     + Note that the probability of type I error in general depends on the real value of $\theta$ as shown below -->
+
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!--  P(\textrm{type I error} \; | \; \theta )&=P(\textrm{Reject }H_0 \; | \; \theta)\\ -->
+<!--  &=P(W \in R \; | \; \theta), \quad \textrm{ for }\theta \in S_0. -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+
+<!-- - If the probability of type I error satisfies -->
+
+<!-- $$ -->
+<!-- P(\textrm{type I error}) \le \alpha, \quad \textrm{ for all }\theta \in S_0, -->
+<!-- $$ -->
+
+<!-- - Then we say the test has significance level $\alpha$ or simply the test is a level-$\alpha$ test -->
+
+<!-- - It is often the case that the null hypothesis is a simple hypothesis, wherein $S_0$ has only one element  -->
+
+<!-- - The second possible error we can make is to accept $H_0$ when $H_0$ is false - this is called the type II error -->
+
+<!--     + Since the alternative hypothesis, $H_1$, is usually a composite hypothesis (so it includes more than one value of $\theta$) -->
+<!--     + The probability of type II error is usually a function of θ -->
+<!--     + The probability of type II error is denoted by $\beta$ -->
+
+<!-- $$ -->
+<!-- \beta(\theta)=P(\textrm{Accept }H_0 \; | \; \theta), \quad \textrm{ for }\theta \in S_1. -->
+<!-- $$ -->
+
+<!-- ## Two-sided Tests for the Mean: -->
+
+<!-- - Given a random sample $X_1,X_2,\ldots,X_n$ from a distribution -->
+
+<!-- - Let $\mu=\operatorname{E}(X_i)$. Our goal is to decide between -->
+
+<!--     + $H_0: \mu=\mu_0$ -->
+<!--     + $H_1: \mu\ne\mu_0$ -->
+
+<!-- - If $H_0$ is true, we expect $\bar{X}$ to be close to -->
+<!-- $\mu_0$ and so we expect $W(X_1,X_2,\ldots,X_n)$ to be close to 0 (see the definition of W above) -->
+
+<!-- - Therefore, we can suggest the following test -->
+
+<!--     + Choose a threshold, and call it $c$ -->
+<!--     + If $|W|\leqc$, accept $H_0$, and if $|W|\gt c$, accept $H_1$ -->
+<!--     - How do we choose $c$? If $\alpha$ is the required significance level, we must have -->
+
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!--    P(\textrm{type I error}) &= P(\textrm{Reject }H_0 \; | \; H_0) \\ -->
+<!--    &= P(|W| > c \; | \; H_0) \leq \alpha. -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+
+<!-- - Thus, we can choose $c$ such that $P(|W|>c|H_0)=\alpha$ -->
+
+## Relation to Confidence Intervals
+
+- It is interesting to examine the above acceptance region. Here, we accept $H_0$ if
+
+$$
+\left|\frac{\overline{X}-\mu_0}{\sigma / \sqrt{n}} \right| \leq z_{\frac{\alpha}{2}}.
+$$
+
+- We can rewrite the above condition as
+
+$$
+\mu_0 \in \left[\overline{X}- z_{\frac{\alpha}{2}} \frac{\sigma}{\sqrt{n}} , \overline{X}+ z_{\frac{\alpha}{2}} \frac{\sigma}{\sqrt{n}}\right].
+$$
+
+- The above interval is the $(1−\alpha)100\%$ confidence interval for $\mu_0$
+
+- This is not a coincidence as there is a general relationship between confidence interval problems and hypothesis testing problems
+
+# Hypothesis testing summary
+
+## Test statistics and acceptance regions for a two-sided test of the mean
+
+```{r, echo=FALSE}
+case <- c("$X_i \\sim N(\\mu, \\sigma^2),\\;\\sigma$ known",
+          "$n$ large, $X_i$ non-normal",
+          "$X_i \\sim N(\\mu, \\sigma^2),\\;\\sigma$ unknown")
+ts <- c("$W=\\frac{\\overline{X}-\\mu_0}{\\sigma / \\sqrt{n}}$",
+        "$W=\\frac{\\overline{X}-\\mu_0}{S / \\sqrt{n}}$",
+        "$W=\\frac{\\overline{X}-\\mu_0}{S / \\sqrt{n}}$")
+ar <- c("$\\vert W \\vert \\leq -z_{\\frac{\\alpha}{2}}$",
+        "$\\vert W \\vert \\leq -z_{\\frac{\\alpha}{2}}$",
+        "$\\vert W \\vert \\leq -t_{\\frac{\\alpha}{2},n-1}$")
+df <- data.frame(case, ts,ar)
+colnames(df) <- c("Case","Test Statistic", "Acceptance Region")
+knitr::kable(df, caption = "Two-sided hypothesis test for the mean $H_0: \\mu=\\mu_0, H_1: \\mu\\ne\\mu_0$")
+```
+
+## Test statistics and acceptance regions for a one-sided test of the mean
+
+```{r, echo=FALSE}
+case <- c("$X_i \\sim N(\\mu, \\sigma^2),\\;\\sigma$ known",
+          "$n$ large, $X_i$ non-normal",
+          "$X_i \\sim N(\\mu, \\sigma^2),\\;\\sigma$ unknown")
+ts <- c("$W=\\frac{\\overline{X}-\\mu_0}{\\sigma / \\sqrt{n}}$",
+        "$W=\\frac{\\overline{X}-\\mu_0}{S / \\sqrt{n}}$",
+        "$W=\\frac{\\overline{X}-\\mu_0}{S / \\sqrt{n}}$")
+ar <- c("$W \\leq -z_{\\alpha}$",
+        "$W \\leq -z_{\\alpha}$",
+        "$W \\leq -t_{\\alpha,n-1}$")
+df <- data.frame(case, ts,ar)
+colnames(df) <- c("Case","Test Statistic", "Acceptance Region")
+knitr::kable(df, caption = "One-sided hypothesis test for the mean $H_0: \\mu\\leq\\mu_0, H_1: \\mu\\gt\\mu_0$")
+```
+
+Note that the tests mentioned in Table 8.3 remain valid if we replace the null hypothesis by μ=μ0. The reason for this is that in choosing the threshold c, we assumed the worst case scenario, i.e, μ=μ0. Finally, if we need to decide between
+
+    + $H_0: \mu \geq \mu_0$
+    + $H_1: \mu \lt \mu_0$
+    
+we can again repeat the above analysis and we obtain the acceptance regions reflected in the table below
+
+```{r, echo=FALSE}
+case <- c("$X_i \\sim N(\\mu, \\sigma^2),\\;\\sigma$ known",
+          "$n$ large, $X_i$ non-normal",
+          "$X_i \\sim N(\\mu, \\sigma^2),\\;\\sigma$ unknown")
+ts <- c("$W=\\frac{\\overline{X}-\\mu_0}{\\sigma / \\sqrt{n}}$",
+        "$W=\\frac{\\overline{X}-\\mu_0}{S / \\sqrt{n}}$",
+        "$W=\\frac{\\overline{X}-\\mu_0}{S / \\sqrt{n}}$")
+ar <- c("$W \\geq -z_{\\alpha}$",
+        "$W \\geq -z_{\\alpha}$",
+        "$W \\geq -t_{\\alpha,n-1}$")
+df <- data.frame(case, ts,ar)
+colnames(df) <- c("Case","Test Statistic", "Acceptance Region")
+knitr::kable(df, caption = "Two-sided hypothesis test for the mean $H_0: \\mu\\geq\\mu_0, H_1: \\mu\\lt\\mu_0$")
+```

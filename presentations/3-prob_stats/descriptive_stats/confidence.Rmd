@@ -1,0 +1,190 @@
+---
+output: html_document
+---
+
+# Constructing confidence intervals
+
+## Overview
+
+- Let $X_1, X_2, X_3,\ldots, X_n$ be a random sample from a distribution with a parameter $\theta$ that is to be estimated
+
+- An interval estimator with confidence level $1−\alpha$ consists of two estimators
+
+    + A low estimator $\hat{\Theta}_l=\hat{\Theta}_l(X_1, X_2, \cdots, X_n)$
+    + A high estimator $\hat{\Theta}_h=\hat{\Theta}_h(X_1, X_2, \cdots, X_n)$
+
+- Such that for every possible value of $\theta$
+
+$$
+P\bigg(\hat{\Theta}_l < \theta \, \textrm{and} \, \hat{\Theta}_h > \theta \bigg) \geq 0.95
+$$
+
+## Finding Intervals Estimators
+
+- Let $X$ be a continuous random variable with CDF $F_X(x)=P(X\leq x)$
+
+- Suppose that we are interested in finding two values $x_h$ and $x_l$ such that
+
+$$
+P\bigg(x_l \leq X  \leq  x_h \bigg)= 1-\alpha.
+$$
+
+- One way to do this, is to find values of $x_l$ and $x_h$ for which
+
+$$
+\begin{aligned}
+P\big(X  \leq  x_l \big)= \frac{\alpha}{2},  \quad &\textrm{and} \quad P\big(X  \geq  x_h\big)= \frac{\alpha}{2}\\\\
+&\text{or}\\\\
+  F_X(x_l)=\frac{\alpha}{2},  \quad &\textrm{and} \quad F_X(x_h)= 1-\frac{\alpha}{2}
+\end{aligned}
+$$
+
+- We can rewrite these equations by using the inverse CDF $F^{−1}_X$ as
+
+$$
+x_l= F^{-1}_X\left(\frac{\alpha}{2}\right),  \quad \textrm{and} \quad x_h= F^{-1}_X\left(1-\frac{\alpha}{2}\right).
+$$
+
+- We call the interval $[x_l,x_h]$ a $(1−\alpha)$ interval for $X$
+
+- A general approach is to start with a point estimator $\hat{\theta}$ and create the interval $\left[\hat{\theta}_l,\hat{\theta}_h\right]$ around it such that $P\bigg(\theta \in \big[\hat{\Theta}_l,\hat{\Theta}_h\big] \bigg) \geq 1-\alpha$
+
+<div class="example">
+### Confidence interval for $\mu$ - Normally distributed sample
+
+- Let $X_1, X_2, X_3,\ldots, X_n$ be a random sample from a normal distribution $NOR(\theta,1)$ - find a $95\%$ confidence interval for $\theta$
+
+```{r}
+# Number observations
+N = 100
+
+# choose level alpha
+alpha = 0.05
+
+# parameters
+.mean = 5.42
+.sd = 1
+
+# Generate random samples
+obs = rnorm(N, mean = .mean, sd = .sd)
+```
+
+- Start with $\hat{\theta}$, the point estimator for $\theta$
+
+- Since $\theta$ is the mean of the distribution, the point estimator we start with is the sample mean
+
+$$
+\hat{\theta}=\overline{X}_n=\frac{X_1+X_2+...+X_n}{n}.
+$$
+
+- Since $X_i \sim NOR(\theta,1)$ and the $X_i$'s are independent, we conclude that
+
+$$
+\overline{X}_n \sim N\left(\theta, \frac{1}{n}\right).
+$$
+
+- By normalizing $\bar{X}_n$, we arrive at that the following random variable having a $NOR(0,1)$ distribution
+
+$$
+ \frac{\overline{X}_n-\theta}{\frac{1}{\sqrt{n}}}=\sqrt{n}(\overline{X}_n-\theta)
+$$
+
+- Thus, for a $100(1-\alpha\%)$ confidence interval we have 
+
+$$
+  P\bigg(-z_{(1-\alpha/2)} \leq \sqrt{n}(\overline{X}_n-\theta)  \leq  z_{(1-\alpha/2)} \bigg)=1-\alpha
+$$
+
+- By rearranging the terms we have
+
+$$
+  P\bigg(\overline{X}_n-\frac{z_{(1-\alpha/2)}}{\sqrt{n}}\; \leq \;\theta\; \leq \; \overline{X}_n+\frac{z_{(1-\alpha/2)}}{\sqrt{n}}\bigg)=1-\alpha
+$$
+
+- Therefore, the $100(1-\alpha)\%$ confidence interval for $\theta$ interval is
+
+$$
+  [\hat{\theta}_l, \hat{\theta}_h] =\left[\overline{X}_n-\frac{z_{(1-\alpha/2)}}{\sqrt{n}}, \overline{X}_n+\frac{z_{(1-\alpha/2)}}{\sqrt{n}}\right]
+$$
+```{r}
+# Find z value at alpha / 2
+z = qnorm(1-alpha / 2, mean = 0, sd = 1)
+
+( theta_l = mean(obs) - z / sqrt(N) )
+( theta_h = mean(obs) + z / sqrt(N) )
+```
+</div>
+
+# Confidence Intervals for the Variance of Normal Random Variables
+
+## Pivotal quantities
+
+- The crucial fact about the previous example is the random variable $Q = \sqrt{n}(\bar{X}−\theta)$
+
+- The random variable $Q$ is known as a <focus>pivotal quantity</focus> or simply a pivot
+
+    + A pivot is a function of the observed data $X_1, X_2, X_3, \ldots, X_n$ and the unknown parameter $\theta$, but it does not depend on any other unknown parameters
+    + The distribution of $Q$ does not depend on $\theta$ or any other unknown parameters
+
+- To construct a confidence interval one is required to first find a pivotal quantity and its distribution
+
+## Confidence interval for $\sigma^2$
+
+- Suppose that we observe a random sample $X_1, X_2, X_3,\ldots, X_n$ 
+
+- Further suppose that the observations in teh sample follow a normal distribution for which the mean $\mu$ and the variance $\sigma^2$ are both unknown
+
+- Using the sample we are tasked with constructing an interval estimator for the variance $\sigma^2$
+
+- In this scenario our pivotal quantity is
+
+$$
+Q=\frac{(n-1)S^2}{\sigma^2}=\frac{1}{\sigma^2}\sum_{i=1}^{n} (X_i-\overline{X})^2
+$$
+
+- This is a pivotal quantity because $Q$ is a function of the data and of the unknown parameter $\sigma$, but is not a function of the unknown mean $\mu$
+
+- It can be shown that $Q$ follows a <a target=" " href="https://stattrek.com/probability-distributions/chi-square.aspx">chi-square distribution</a> with $n-1$ degrees of freedom
+
+- Thus a $100(1-\alpha\%)$ confidence interval can be constructed  as
+
+$$
+\begin{aligned}
+P\left(\chi^2_{1-\frac{\alpha}{2},n-1} \leq Q  \leq \chi^2_{\frac{\alpha}{2},n-1}  \right)&= 1-\alpha\\\\
+  P\left(\chi^2_{1-\frac{\alpha}{2},n-1} \leq \frac{(n-1)S^2}{\sigma^2}  \leq \chi^2_{\frac{\alpha}{2},n-1}  \right)&= 1-\alpha\\\\
+   P\left(\frac{(n-1)S^2}{\chi^2_{\frac{\alpha}{2},n-1}}  \leq \sigma^2 \leq \frac{(n-1)S^2}{\chi^2_{1-\frac{\alpha}{2},n-1}}   \right)&= 1-\alpha
+\end{aligned}
+$$
+
+- Therefore, we conclude that a $(1−\alpha)100\%$ confidence interval for $\sigma^2$ is expressed as 
+
+$$
+\left[\frac{(n-1)S^2}{\chi^2_{\frac{\alpha}{2},n-1}} , \frac{(n-1)S^2}{\chi^2_{1-\frac{\alpha}{2},n-1}} \right]
+$$
+
+<div class="example">
+### Confidence interval for $\sigma^2$ - Normally distributed sample
+
+```{r}
+# Number observations
+N = 100
+
+# choose level alpha
+alpha = 0.05
+
+# parameters
+.mean = 5.42
+.sd = 1
+
+# Generate random samples
+obs = rnorm(N, mean = .mean, sd = .sd)
+```
+
+```{r}
+S_2 = var(obs)
+
+
+( sigma_l = ((N-1) * S_2) / qchisq(1-alpha/2,N-1) )
+( sigma_h = ((N-1) * S_2) / qchisq(alpha/2,N-1) )
+```
+</div>
