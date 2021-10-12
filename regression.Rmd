@@ -64,54 +64,14 @@ library(earth)
 theme_set(theme_bw())
 ```
 
-# Generalized linear models
+# 
 
-## Overview
 
-- It's also important to understand where linear regression fits in with other models
+# Probability review
 
-- The form of a linear regression model is as shown in the expression below, where
 
-    + $Y$ is the target (aka output/response) variable that is a function of $\overline{\beta}}$ and $\overline{X}$
-    + $\overline{x}$ is a vector of inputs (the overbar denotes that $X$ is a vector quantity)
-    + $\overline{\beta}$ is a vector of weights
-    + $\epsilon$ denotes the variation in $Y$ that cannot be accounted for explained by the $X_{0}\beta_{0} + X_{1}\beta_{1}+ \cdots + X_{n}\beta_{n}$
 
-$$
-Y = f(\overline{\beta},\overline{X}) = X_{0}\beta_{0} + X_{1}\beta_{1}+ \cdots + X_{n}\beta_{n} + \epsilon
-$$
-
-- In words, this expression states that:
-
-    + The values of the output variable $Y$ captured in our data set vary
-    + Some of this variation can be accounted for by recognizing the value of  $Y$ depends on the value of $X$
-    + Builing a regression model that includes these inputs may help us understand the relationship between $X$ and $Y$
-    + The $\beta$ terms how strength of the relationship between $X$ and $Y$
-    + Not all of the variation in $Y$ can be explained by this relationship - this remaining variation is captured by the $\epsilon$ term
-
-- It's important that you recognize that this model expression has three parts (1 and 2 are easy to see - 3 is not)
-
-    1. A systematic term that expresses how the linear combination ($X_{0}\beta_{0} + X_{1}\beta_{1}+ \cdots + X_{n}\beta_{n}$) impacts the expected value of the target $E[Y|X]$
-    
-    2. A random term ($\epsilon$) that expresses the amount variance in the target $Y$ that is not explained by systematic term
-    
-    3. A link function that specifies the link between random and systematic components - expresses the relationship between $E[Y|X]$ and $X_{0}\beta_{0} + X_{1}\beta_{1}+ \cdots + X_{n}\beta_{n}$
-
-- These components are present in all members of the **generalized linear models (GLM)** family
-
-    + Linear and logistic regression are members of this family
-    + The table below highlights the members of this family and components for each member
-
-|Model                  | Random      | Link              | Systematic  |
-|:----------------------|:------------|:------------------|:------------|
-|Linear Regression      | Normal      | Identity          | Continuous  |
-|ANOVA                  | Normal      | Identity          | Categorical |
-|ANCOVA                 | Normal      | Identity          | Mixed       |
-|Logistic Regression    | Binomial    | Logit             | Mixed       |
-|Loglinear Regression   | Poisson     | Log               | Categorical |
-|Poisson Regression     | Poisson     | Log               | Mixed       |
-|Multinomial Regression | Multinomial | Generalized Logit | Mixed       |
-
+## Brief interlude on probability distributions 
 $$
 E[Y|\underline{X}] = \beta_{0} + X_{1}\beta_{1}+ \cdots + X_{n}\beta_{n} + \epsilon
 $$
@@ -124,7 +84,7 @@ $$
 
 - Explanatory variables can be even the power terms or some other nonlinear transformations of the original independent variables
 
-- The homogeneity of variance does NOT need to be satisfied. In fact, it is not even possible in many cases given the model structure, and overdispersion (when the observed variance is larger than what the model assumes) maybe present
+- Simple regression models assume constant variance - but in many cases this assumption does NOT need to be satisfied
 
 - Errors need to be independent but NOT normally distributed
 
@@ -189,6 +149,32 @@ $$
 
 - Objective function: $\text{minimize} \bigg \{ SSE = \sum^n_{i=1} (y_i - \hat{y}_i)^2 \bigg \} \equiv \text{minimize MSE}$
 
+- Recall that these are vector valued quantities, thus we can express equation (1) using matrix notation as:
+
+$$
+\begin{bmatrix}
+\text{Sale_Price}_1\\
+\text{Sale_Price}_2\\
+\cdots\\
+\text{Sale_Price}_n
+\end{bmatrix} = 
+\begin{bmatrix}
+1&\text{Gr_Liv_Area}_1\\
+1&\text{Gr_Liv_Area}_2\\
+\cdots & \cdots\\
+1&\text{Gr_Liv_Area}_n
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0\\
+\beta_1\\
+\end{bmatrix}+
+\begin{bmatrix}
+\epsilon_1\\
+\epsilon_2\\
+\cdots\\
+\epsilon_n
+\end{bmatrix}
+$$
 
 ## Model Building
 
@@ -197,6 +183,7 @@ To build this model in R we use the formula notation of $Y \sim X$.
 ```{r}
 model1 <- lm(Sale_Price ~ Gr_Liv_Area, 
              data = ames_train)
+
 summary(model1)
 ```
 
@@ -286,16 +273,17 @@ ames_plot
 
 - `glm()` also performs linear regression but extends to other generalized methods (i.e. logistic regression)
 
-- `summary(model)` provides many results (i.e. "Residual Standard Error" is the RMSE)
+- For an initial assessment of our model we can use `summary(model)`
+
+    + This provides us with a host of information about our model
+    + Alternatively, `glance(model)` provides a "tidy" result output
 
 - No method for resampling (i.e. cross validation) built into `lm()`
 
-<!--<img src="/public/images/analytics/regression/sq.errors-1.png" style="display: block; margin: auto;" />-->
-
-For initial assessment of our model we can use `summary`.  This provides us with a host of information about our model, which we'll walk through.  Alternatively, you can also use `glance(model1)` to get a "tidy" result output.
-
 ```{r}
 summary(model1)
+
+broom::glance(model1)
 ```
 
 ### Assessing Coefficients
