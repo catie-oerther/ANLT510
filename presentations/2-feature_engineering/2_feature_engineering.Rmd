@@ -12,7 +12,7 @@ graphics: yes
 
 # Feature & Target Engineering
 
-```{r child="resources/R/setup.Rmd"}
+```{r child="../../resources/R/setup.Rmd"}
 ```
 
 ```{r ggsetup, include=FALSE, cache=FALSE}
@@ -87,8 +87,6 @@ ames_test  <- rsample::testing(split)
 - plus...
 
 - sometimes used to for shaping the business problem as well
-
-.center[_“taking logs means that errors in predicting expensive houses and cheap houses will affect the result equally.”_]
 
 $$
 \texttt{Sale_Price} = \beta_0 + \beta_1\texttt{Year_Built} + \epsilon
