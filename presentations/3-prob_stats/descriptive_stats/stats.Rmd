@@ -1,0 +1,490 @@
+---
+title: "Wittenberg University - Master of Science in Analytics"
+subtitle: "ANLT 510 "
+author: "Day 1: Probability & Statistics Review"
+date: "`r format(Sys.Date(), format = '%d %b %Y')`"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+params:
+  day1_date: "Oct 15"
+  day2_date: "Oct 16"
+  day3_date: "Nov 12"
+---
+
+# Probability and Statistics
+
+```{r child="../../../resources/R/setup.Rmd"}
+```
+
+## Overview
+
+- Introduce Probability and Statistics Concepts
+- Distinguishing between **S**tatistics and **s**tatistics
+- Descriptive Statistics vs. Inferential Statistics
+- Descriptive Statistics
+
+    + Measures of central tendency
+    + Measures of variation
+
+- Generating numeric and visual data summaries
+
+```{r, child="prob_intro.Rmd"}
+```
+
+# Descriptive Statistics
+
+## Overview
+
+- Descriptive statistics are numerical measures that help analysts communicate the features of a data set by giving short summaries about the **measures of central tendency** or the **measures of dispersion (variability)**
+
+- Measures of central tendency describe the location of the center of a distribution or a data set
+
+- Some commonly used measures of central tendency are 
+
+    + mean
+    + median
+    + mode
+
+- Measures of variability describe how spread-out the data are
+
+ - While measures of central tendency help locate the middle of a data set, they don't provide information about how the data are arranged (aka distributed)
+
+- Some commonly used measures of variability include:
+
+    + standard deviation
+    + variance 
+    + minimum and maximum values
+    + range
+    + kurtosis 
+    + skewness
+    + entropy
+
+## Descriptive Statistics vs. Inferential Statistics
+
+- It's rare that a data set contains observe from every member of a population 
+
+    + Most analyses are conducted on a representative sample taken from the population
+    + Analysts make inferences about the population based on observations contained in the sample  
+
+- Inferential statistics are measures resulting from mathematical computations -- help analysts **infer** trends about a population based upon the study of the sample
+
+- Examples of inferential statistics
+
+    + Methods to compute **Confidence intervals** that "capture" a population parameter with a specified degree of confidence
+    + Methods to test claims about the population by analyzing a representative samples (**hypothesis tests**)  
+
+- In the rest of this presentation we'll cover several descriptive and inferential statistics concepts and show how to implement them using R
+
+- To do this we'll need to load several packages
+
+```{r}
+library(tidyverse)
+library(patchwork)
+```
+
+# Measures of Central Tendency
+
+## Measures of Central Tendency - **mean**
+
+- The `base::mean()` function returns the arithmetic average of a set of numeric values stored in a data object 
+
+- For the set of values $x_1,x_2, \ldots, x_N$ the mean is calculated as
+
+$$
+\hat{\mu} = \bar{x} = \frac{\sum_{i = 1}^{N}x_i}{N} = \frac{x_1 + x_2 + \cdots + x_N}{N}.
+$$
+
+- The sample mean gives an unbiased estimate of the true population mean
+
+    + When taken on average over all the possible samples, `mean()` converges on the true mean of the entire population
+    + If the data are the entire population rather than a sample, then `mean(data)` is equivalent to calculating the true population mean $\mu$.
+
+- The `mean()` function requires a vector of numeric values and returns the mean of these values 
+
+```{r}
+num_vec = c(-2,-4,1,2,3,5,7,9)
+base::mean(num_vec)
+```
+
+- If we try find the mean of a `list` or a `data.frame`, the function returns `NA` and we get a warning
+
+```{r}
+l = list("one" = 1,"two" = 2,"three" = 3)
+
+base::mean(l)
+
+class(mtcars)
+
+base::mean(mtcars)
+```
+
+- However, we can get around these issues using the "apply" function function family as shown below
+
+```{r}
+# apply FUN to each element in list X
+# each element in X must be numeric
+base::lapply(X = l, FUN = mean)
+
+base::sapply(X = mtcars, mean)
+
+## Apply mean to each column
+base::apply(X = mtcars, MARGIN = 2, FUN = mean)
+
+## specialized function for computing means of each column
+base::colMeans(mtcars)
+```
+
+## Measures of Central Tendency - **median**
+
+- The `stats::median()` function returns the middle value of a set of numeric values stored in a data object 
+
+- For the set of values $X = x_1,x_2, \ldots, x_N$ the median is calculated as
+
+$$
+{\displaystyle \mathrm {median} (X)={\frac {X_{\lfloor (N+1)\div 2\rfloor }+X_{\lceil (N+1)\div 2\rceil }}{2}}}
+$$
+
+- where $X$ is an ordered list of numbers, $N$ denotes the length of $X$, and $\lfloor .\rfloor$ and $\lceil .\rceil$ represent the floor and ceiling functions, respectively.
+
+- The median is a preferred measure of central location for skewed distributions and data sets, later show how the median summarizes differently than the mean
+
+- As was shown when introducing the mean, we can compute the median of an array of values by passing the array to the `median()` function. 
+
+- Note that because the array contains an even number of elements the median is computed as mean of the two number in the middle - in this case 2 and 3
+
+```{r}
+num_vec = c(-2,-4,1,2,3,5,7,9)
+stats::median(num_vec)
+```
+
+- When using `base::mean()` on a `list` or a `data.frame` we received a warning - when using `stats::median` we get an error
+
+```{r, error=!FALSE}
+l = list("one" = 1,"two" = 2,"three" = 3)
+
+stats::median(l)
+
+class(mtcars)
+
+stats::median(mtcars)
+```
+
+- Again we can get around this...
+
+```{r, error=TRUE}
+# apply FUN to each element in list X
+# each element in X must be numeric
+base::lapply(X = l, FUN = median)
+
+base::sapply(X = mtcars, median)
+
+## Apply mean to each column
+base::apply(X = mtcars, MARGIN = 2, FUN = median)
+
+## doesn't exist
+base::colMedians(mtcars)
+```
+
+## Measures of Central Tendency - **mode**
+
+- The `mode()` of a vector is the value that is most probable or occurs most often 
+
+- There is a `mode()` function in R, but it returns the mode property of an object - not what we want
+
+- However we can create this function as shown below
+
+```{r}
+.mode <- function(x){
+  
+  if(!is.null(dim(x))) {
+    
+    if(dim(x) > 1L) stop("x must be a vector.\\nYou provided a ", class(x))
+    
+  }
+  
+  if(!is.numeric(x)) stop("x must be numeric")
+  
+  ta = table(x)
+  tam = max(ta)
+  
+  if(all(ta == tam)) return(NA)
+  
+  return(as.numeric(names(ta)[ta == tam]))
+  
+}
+```
+
+
+- Note that in the vector `num_vec` defined above there is not a unique mode as each value occurs once - this results in the function returning a value of `NA` 
+
+```{r}
+num_vec = c(-2,-4,1,2,3,5,7,9)
+.mode(num_vec)
+```
+
+- We can then apply this function to a `list` or a `data.frame`
+
+```{r}
+apply(mtcars, 2, .mode)
+```
+
+# Measures of Variation
+
+## Measures of variation - **range**
+
+- The range of a data set shows the span of the data 
+
+- For a sample of observations $X = x_1, x_2,\ldots,x_N$ the range of $X$ may be found from a simple computation 
+
+$$
+\text{range(X)}=\max{(X)} - \min{(X)}
+$$
+
+- Note - the value of the range statistic is determined by only two observations from any data set - and is easily influenced by the presence of outliers
+
+- In R the range statistic may be computed using the intrinsic functions `range()` or combining `max()` and `min()`
+
+```{r}
+range(num_vec)
+
+max(num_vec) - min(num_vec)
+```
+
+## Measures of variation - **variance**
+
+- The variance of a data set measures how far the values are spread out from their average value (or mean)
+
+- For a sample of observations $X = x_1, x_2,\ldots,x_N$ the unbiased sample variance, denoted as $s^2$ is computed as 
+
+$$
+{\displaystyle s^{2}={\frac {1}{N-1}}\sum _{i=1}^{N}\left(x_{i}-{\overline {x}}\right)^{2}}
+$$
+
+- If the data are the entire population the the population variance, denoted as $\sigma^2$ or $\operatorname{Var}[X]$ is computed
+
+$$
+\sigma^2 = \operatorname {Var}(X)={\frac {1}{N}}\sum _{i=1}^{N}(x_{i}-\mu)^{2}
+$$
+
+- In R the variance of an array of numeric values can be computed using the `stats::variance()` function
+
+```{r}
+var(num_vec)
+```
+
+## Measures of variation - **standard deviation**
+
+- The standard deviation of a data set, like the variance, is measure of how far the values are spread out relative to the mean
+
+- A useful property of the standard deviation is that, unlike the variance, it is expressed in the same units as the data
+
+- If the data are a sample the sample standard deviation, denoted by $s$ is the square root of the sample variance
+
+$$
+s = \sqrt{s^2} = \sqrt{{\frac {1}{N-1}}\sum _{i=1}^{N}\left(x_{i}-{\overline {x}}\right)^{2}}
+$$
+
+- If the data are the population the standard deviation, denoted by $\sigma$ is the square root of the variance
+
+$$
+\sigma = \sqrt{\sigma^2} = \sqrt{\operatorname {Var}(X)}=\sqrt{{\frac {1}{N}}\sum _{i=1}^{N}(x_{i}-\mu)^{2}}
+$$
+
+- In R the standard deviation of an array of numeric values can be computed using the `stats::sd()` function
+
+```{r}
+sd(num_vec)
+```
+
+
+# Generating numeric and visual data summaries
+
+- In the next slides we show various ways to summarize data 
+
+- Visual summaries
+
+    + Histograms
+    + Boxplots
+    + Scatterplots
+
+- Numeric summaries
+
+    + z-score
+    + covariance
+    + correlation
+
+- To implement these summaries I create two vectors arrays containing pseudorandom observations generated from two different distributions
+
+- For the first vector I use `rnorm()` to generate 4000 observations from a standard normal distribution $NOR(0,1)$
+
+- For the second vector I use `rlnorm()` to generate 4000 observations from a lognormal distribution $LOGNOR(1,0.75)$
+
+```{r randnorm}
+N_obs = 4000
+
+normal = rnorm(N_obs, mean = 1, sd = 10000)
+
+lognormal = rlnorm(N_obs, meanlog = 10, sdlog = .75)
+```
+
+- Next, I create two-column `data.frame` for the `'normal'` data and a two-column `data.frame` for the `'lognormal'` data 
+
+```{r}
+DF.n = data.frame(distribution = 'normal',
+                  data = normal)
+
+DF.l = data.frame(distribution = 'lognormal',
+                  data = lognormal)
+```
+
+- Finally, I merge these objects
+
+```{r}
+DF = merge(DF.n, DF.l, all = T)
+
+head(DF)
+```
+
+## Histogram of normal and lognormal observations
+
+- This code creates a histogram for the normal data showing that mean and median are nearly the same for symmetrically distributed data (i.e. have low skewness values)
+
+```{r, fig.width=10, fig.cap="Histogram of pseudorandom observations from a standard normal distribution"}
+# Settings
+p1 = ggplot(DF.l, aes(x = data)) +
+  geom_histogram(bins = 50) +
+  geom_vline(xintercept = mean(DF.l$data), col = "red", size = 1.5) +
+  geom_vline(xintercept = median(DF.l$data), col = "blue", size = 1.5)
+
+p2 = ggplot(DF.n, aes(x = data)) +
+  geom_histogram(bins = 50) +
+  geom_vline(xintercept = mean(DF.n$data), col = "red", size = 1.5) +
+  geom_vline(xintercept = median(DF.n$data), col = "blue", size = 1.5)
+   
+p1 + p2      
+```
+
+## Density plot of normal and lognormal observations
+
+- Density plots are similar to histograms
+
+- This code creates a density plot for the data showing that mean and median are nearly the same for symmetrically distributed data (i.e. have low skewness values)
+
+```{r}
+ggplot(DF, aes(x = data, col = distribution)) +
+  geom_density(size = 2)
+```
+
+## Histogram of lognormal observations
+
+- This code creates a histogram for the lognormal data and shows how the mean and median separate when the data are not symmetrically distributed (i.e. have larger skewness values)
+
+```{r lognormal, fig.width=10, fig.cap="Histogram of pseudorandom observations from a standard normal distribution", fig.height=7}
+# Create histogram
+.data = subset(DF, distribution == 'lognormal', select = data)
+
+ggplot(.data, aes(x = data)) +
+  geom_histogram(bins = as.integer(N_obs / 10)) +
+  xlab("LOGNOR(10,0.75)") +
+  geom_vline(xintercept = mean(.data$data),col = "red", size = 1.5) +
+  geom_vline(xintercept = median(.data$data), col = "blue", size = 1.5)
+```
+
+## Box plots
+
+- A box plot (or box-and-whisker plot) shows the distribution of quantitative data in a way that facilitates comparisons between variables or across levels of a categorical variable. 
+
+- The box shows the quartiles of the data set while the whiskers extend to show the rest of the distribution, except for points that are determined to be “outliers” using a method that is a function of the inter-quartile range.
+
+- The code below generates a boxplot displaying both columns of the `data.frame` 
+
+```{r, fig.width=10,fig.cap="Boxplot comparing the normal and lognormal data"}
+ggplot(DF, aes(x = distribution, y = data))+
+  geom_boxplot()
+```
+
+## Violin Plots
+
+```{r, fig.width=10,fig.cap="Boxplot comparing the normal and lognormal data"}
+ggplot(DF, aes(x = distribution, y = data))+
+  geom_violin()
+```
+
+## Covariance
+
+- **Covariance** is a descriptive statistic used to measure the linear association between two variables
+
+- The sample covariance between variables $X$ and $Y$ is computed as
+
+$$
+S_{XY} = \frac{\sum_{i=1}^N(x_i - \bar{x})(y_i - \bar{y})}{N-1}
+$$
+
+- The population covariance is computed as
+
+$$
+\sigma_{XY} = \frac{\sum_{i=1}^N(x_i - \mu_x)(y_i - \mu_y)}{N}
+$$
+
+- To compute the covariances for the `data.frame`, `DF` we created earlier we can use the `cov()` function from the `stats` library
+
+```{r}
+(cov1 = cov(DF.l$data, DF.n$data))
+```
+
+## Correlation
+
+- **Correlation** is a descriptive statistic used to measure the linear association between two variables
+
+- The correlation (or correlation coefficient) is a measure defined between -1 and 1 
+
+- Is a dimensionless quantity that is not affected by the units of measurement for X and Y
+
+- The sample correlation between variables $X$ and $Y$ is computed as
+
+$$
+r_{_{XY}} = \frac{S_{_{XY}}}{s_{_{X}}s_{_{Y}}}
+$$
+
+- To compute the correlations for the `data.frame`. `DF` we created earlier we can use the `cor()` function from the stats library
+
+```{r}
+stats::cor(DF.n$data, DF.l$data)
+```
+
+## Covariance and Correlation
+
+- Finally, what if we wanted to compute the covariance ourselves?
+
+- The code below computes the covariance as well as the difference between this value and the value found from using the `cov()` function from `stats`
+
+```{r}
+X = DF.n$data
+Y = DF.l$data
+X_diff = X - base::mean(X)
+Y_diff = Y - base::mean(Y)
+prod = X_diff * Y_diff
+
+cov2 = sum(prod) / (length(X) - 1)
+
+cov1 - cov2
+```
+
+
+```{r}
+m = cor(mtcars)
+corrplot::corrplot(m)
+```
+
+
+```{r, child="confidence.Rmd", eval=TRUE}
+```
+
+```{r, child="estimation.Rmd", eval=TRUE}
+```
+
+```{r, child="hypothesis.Rmd", eval=TRUE}
+```
