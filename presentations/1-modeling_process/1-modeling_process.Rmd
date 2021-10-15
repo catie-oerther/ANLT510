@@ -12,7 +12,7 @@ graphics: yes
 
 # Introduction
 
-```{r child="resources/R/setup.Rmd"}
+```{r child="../../resources/R/setup.Rmd"}
 ```
 
 ```{r ggsetup, include=FALSE, cache=FALSE}
@@ -61,13 +61,14 @@ knitr::include_graphics(find_resource("images","modeling_process.png"))
 
 ```{r prereq-pkg-install, eval=FALSE}
 ## install packages into local library
-install.packages(c(rsample,
-                   modeldata,
-                   caret,
-                   tidyverse,
-                   cowplot,
-                   h2o,
-                   DT))
+install.packages(c("rsample",
+                   "modeldata",
+                   "caret",
+                   "tidyverse",
+                   "cowplot",
+                   "h2o",
+                   "DT",
+                   "scales"))
 ```
 
 ```{r prereq-pkg-lib}
@@ -79,6 +80,7 @@ library(tidyverse)
 library(cowplot)
 library(h2o)
 library(DT)
+library(scales)
 ```
 
 - Likewise, you'll want to load the `ames` and `attrition` data sets from the `modeldata` package
@@ -816,10 +818,4 @@ ggplot(knn_fit$results, aes(k, RMSE)) +
 - Moreover, we have not considered potential feature and target engineering options 
 
 # Questions?
-
-```{r unsupervised-questions, echo=FALSE, out.height="50%", out.width="50%"}
-knitr::include_graphics("https://media.makeameme.org/created/i-love-questions.jpg")
-```
-
-
 
