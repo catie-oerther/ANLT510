@@ -16,7 +16,7 @@ params:
 
 # Overview
 
-```{r child="resources/R/setup.Rmd"}
+```{r child="../../resources/R/setup.Rmd"}
 ```
 
 ## Supervised Vs Unsupervised Learning Algorithms
